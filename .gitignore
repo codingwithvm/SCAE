@@ -1,5 +1,12 @@
+# Project files
 steps.md
 claude.md
 
 # Dependencies
 node_modules/
+
+# Next.js
+.next/
+
+# TypeScript
+*.tsbuildinfo
