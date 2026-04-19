@@ -11,7 +11,11 @@
     "node": ">=18.0.0"
   },
   "scripts": {
+    "dev": "node scripts/dev.mjs",
     "dev:web": "npm run dev --workspace=apps/web",
+    "services:up": "docker compose -f apps/web/infra/compose.yaml up -d",
+    "services:stop": "docker compose -f apps/web/infra/compose.yaml stop",
+    "services:down": "docker compose -f apps/web/infra/compose.yaml down",
     "lint:prettier:check": "prettier --check .",
     "lint:prettier:fix": "prettier --write .",
     "lint:eslint:check": "eslint .",
@@ -23,6 +27,7 @@
     "@eslint/js": "^10.0.1",
     "eslint": "^10.2.1",
     "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.5.0",
     "prettier": "^3.6.2",
     "typescript-eslint": "^8.58.2"
   }
