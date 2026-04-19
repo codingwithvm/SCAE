@@ -14,7 +14,9 @@
     "dev:web": "npm run dev --workspace=apps/web",
     "lint:prettier:check": "prettier --check .",
     "lint:prettier:fix": "prettier --write .",
-    "lint:eslint:check": "eslint ."
+    "lint:eslint:check": "eslint .",
+    "test:web": "npm run test --workspace=apps/web",
+    "test:web:watch": "npm run test:watch --workspace=apps/web"
   },
   "license": "UNLICENSED",
   "devDependencies": {
