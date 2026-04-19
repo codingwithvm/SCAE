@@ -1,1 +1,4 @@
 apps/web/src/generated/
+apps/web/.next/
+.next/
+src/generated/
