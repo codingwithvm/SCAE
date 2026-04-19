@@ -9,5 +9,8 @@ node_modules/
 .next/
 next-env.d.ts
 
+# Prisma
+apps/web/src/generated/prisma/
+
 # TypeScript
 *.tsbuildinfo
