@@ -1,43 +1,75 @@
 import { spawn } from "child_process";
 
-const composeFile = "apps/web/infra/compose.yaml";
+const dockerComposeFilePath = "apps/web/infra/compose.yaml";
+const waitForPostgresScriptPath =
+  "apps/web/infra/scripts/wait-for-postgres.mjs";
+let isShuttingDown = false;
 
-function run(command, args = [], options = {}) {
+function spawnProcess(command, args = [], options = {}) {
   return spawn(command, args, { stdio: "inherit", shell: true, ...options });
 }
 
-function stopServices() {
+function stopDockerServices() {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
   console.log("\n🛑 Stopping Docker services...");
-  const stop = run("docker", ["compose", "-f", composeFile, "stop"]);
-  stop.on("close", () => process.exit(0));
+  const dockerStopProcess = spawnProcess("docker", [
+    "compose",
+    "-f",
+    dockerComposeFilePath,
+    "stop",
+  ]);
+  dockerStopProcess.on("close", () => process.exit(0));
 }
 
-const up = run("docker", [
+function waitForPostgres() {
+  return new Promise((resolve, reject) => {
+    const waitForPostgresProcess = spawnProcess("node", [
+      waitForPostgresScriptPath,
+    ]);
+    waitForPostgresProcess.on("close", (exitCode) =>
+      exitCode === 0 ? resolve() : reject(exitCode),
+    );
+  });
+}
+
+const dockerUpProcess = spawnProcess("docker", [
   "compose",
   "-f",
-  composeFile,
+  dockerComposeFilePath,
   "up",
   "-d",
   "--remove-orphans",
 ]);
 
-up.on("close", (code) => {
-  if (code !== 0) {
+dockerUpProcess.on("close", async (exitCode) => {
+  if (exitCode !== 0) {
     console.error("Failed to start Docker services.");
-    process.exit(code);
+    process.exit(exitCode);
   }
 
-  const next = run("npm", ["run", "dev:web"]);
+  await waitForPostgres();
 
-  ["SIGINT", "SIGTERM"].forEach((signal) => {
-    process.on(signal, () => {
-      next.kill(signal);
-      stopServices();
-    });
+  const nextDevProcess = spawn("npm", ["run", "dev:web"], {
+    stdio: "inherit",
+    shell: true,
+    detached: true,
   });
 
-  next.on("close", (exitCode) => {
-    stopServices();
-    process.exit(exitCode);
+  function shutdownAllProcesses(signal) {
+    try {
+      process.kill(-nextDevProcess.pid, signal);
+    } catch {
+      nextDevProcess.kill(signal);
+    }
+    stopDockerServices();
+  }
+
+  ["SIGINT", "SIGTERM"].forEach((signal) => {
+    process.on(signal, () => shutdownAllProcesses(signal));
+  });
+
+  nextDevProcess.on("close", () => {
+    stopDockerServices();
   });
 });
