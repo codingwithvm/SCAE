@@ -1,9 +1,33 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  return NextResponse.json({
-    status: "healthy",
-    version: "0.1.0",
-    timestamp: new Date().toISOString(),
-  });
+  try {
+    await prisma.$queryRaw`SELECT 1 AS connection_test`;
+
+    return NextResponse.json({
+      status: "healthy",
+      version: "0.1.0",
+      timestamp: new Date().toISOString(),
+      services: {
+        database: {
+          status: "connected",
+        },
+      },
+    });
+  } catch {
+    return NextResponse.json(
+      {
+        status: "unhealthy",
+        version: "0.1.0",
+        timestamp: new Date().toISOString(),
+        services: {
+          database: {
+            status: "disconnected",
+          },
+        },
+      },
+      { status: 503 },
+    );
+  }
 }
