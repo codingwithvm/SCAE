@@ -11,13 +11,24 @@ import { prisma } from "@/lib/prisma";
 
 const mockedPrisma = vi.mocked(prisma);
 
+function mockDatabaseHealthyResponses({
+  version = "16.0",
+  maxConnections = "100",
+  openedConnections = 5,
+} = {}) {
+  mockedPrisma.$queryRaw
+    .mockResolvedValueOnce([{ server_version: version }])
+    .mockResolvedValueOnce([{ max_connections: maxConnections }])
+    .mockResolvedValueOnce([{ count: openedConnections }]);
+}
+
 describe("GET /api/v1/health", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("returns a healthy status with status code 200", async () => {
-    mockedPrisma.$queryRaw.mockResolvedValueOnce([{ connection_test: 1 }]);
+    mockDatabaseHealthyResponses();
 
     const response = await GET();
     const data = await response.json();
@@ -27,7 +38,7 @@ describe("GET /api/v1/health", () => {
   });
 
   it("returns the current system version", async () => {
-    mockedPrisma.$queryRaw.mockResolvedValueOnce([{ connection_test: 1 }]);
+    mockDatabaseHealthyResponses();
 
     const response = await GET();
     const data = await response.json();
@@ -36,7 +47,7 @@ describe("GET /api/v1/health", () => {
   });
 
   it("returns a valid ISO timestamp", async () => {
-    mockedPrisma.$queryRaw.mockResolvedValueOnce([{ connection_test: 1 }]);
+    mockDatabaseHealthyResponses();
 
     const response = await GET();
     const data = await response.json();
@@ -46,12 +57,39 @@ describe("GET /api/v1/health", () => {
   });
 
   it("returns database status as connected when database is reachable", async () => {
-    mockedPrisma.$queryRaw.mockResolvedValueOnce([{ connection_test: 1 }]);
+    mockDatabaseHealthyResponses();
 
     const response = await GET();
     const data = await response.json();
 
     expect(data.services.database.status).toBe("connected");
+  });
+
+  it("returns the postgres server version", async () => {
+    mockDatabaseHealthyResponses({ version: "16.0" });
+
+    const response = await GET();
+    const data = await response.json();
+
+    expect(data.services.database.version).toBe("16.0");
+  });
+
+  it("returns the max connections as a number", async () => {
+    mockDatabaseHealthyResponses({ maxConnections: "100" });
+
+    const response = await GET();
+    const data = await response.json();
+
+    expect(data.services.database.max_connections).toBe(100);
+  });
+
+  it("returns the current opened connections count", async () => {
+    mockDatabaseHealthyResponses({ openedConnections: 7 });
+
+    const response = await GET();
+    const data = await response.json();
+
+    expect(data.services.database.opened_connections).toBe(7);
   });
 
   it("returns status 503 and disconnected when database is unreachable", async () => {
@@ -76,30 +114,30 @@ describe("GET /api/v1/health", () => {
 
     const response = await GET();
     const data = await response.json();
-    const body = JSON.stringify(data);
+    const responseBody = JSON.stringify(data);
 
-    expect(body).not.toContain("postgresql://");
-    expect(body).not.toContain("password");
-    expect(body).not.toContain("DATABASE_URL");
+    expect(responseBody).not.toContain("postgresql://");
+    expect(responseBody).not.toContain("password");
+    expect(responseBody).not.toContain("DATABASE_URL");
   });
 
   it("does not expose internal stack traces on error", async () => {
-    const error = new Error("Something went wrong");
-    error.stack =
+    const databaseError = new Error("Something went wrong");
+    databaseError.stack =
       "Error: Something went wrong\n    at Object.<anonymous> (/app/src/lib/prisma.ts:10:15)";
-    mockedPrisma.$queryRaw.mockRejectedValueOnce(error);
+    mockedPrisma.$queryRaw.mockRejectedValueOnce(databaseError);
 
     const response = await GET();
     const data = await response.json();
-    const body = JSON.stringify(data);
+    const responseBody = JSON.stringify(data);
 
-    expect(body).not.toContain("at Object");
-    expect(body).not.toContain(".ts:");
-    expect(body).not.toContain("stack");
+    expect(responseBody).not.toContain("at Object");
+    expect(responseBody).not.toContain(".ts:");
+    expect(responseBody).not.toContain("stack");
   });
 
   it("only allows GET method", async () => {
-    mockedPrisma.$queryRaw.mockResolvedValueOnce([{ connection_test: 1 }]);
+    mockDatabaseHealthyResponses();
 
     const response = await GET();
 
@@ -107,7 +145,7 @@ describe("GET /api/v1/health", () => {
   });
 
   it("returns correct content-type header", async () => {
-    mockedPrisma.$queryRaw.mockResolvedValueOnce([{ connection_test: 1 }]);
+    mockDatabaseHealthyResponses();
 
     const response = await GET();
 
@@ -115,7 +153,7 @@ describe("GET /api/v1/health", () => {
   });
 
   it("does not expose raw database query results", async () => {
-    mockedPrisma.$queryRaw.mockResolvedValueOnce([{ connection_test: 1 }]);
+    mockDatabaseHealthyResponses();
 
     const response = await GET();
     const data = await response.json();
