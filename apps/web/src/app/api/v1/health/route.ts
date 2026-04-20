@@ -3,7 +3,23 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    await prisma.$queryRaw`SELECT 1 AS connection_test`;
+    const databaseServerVersionResult = await prisma.$queryRaw<
+      [{ server_version: string }]
+    >`SHOW server_version`;
+    const databaseServerVersion = databaseServerVersionResult[0].server_version;
+
+    const databaseMaxConnectionsResult = await prisma.$queryRaw<
+      [{ max_connections: string }]
+    >`SHOW max_connections`;
+    const databaseMaxConnections = parseInt(
+      databaseMaxConnectionsResult[0].max_connections,
+    );
+
+    const databaseName = process.env.POSTGRES_DB;
+    const databaseOpenedConnectionsResult = await prisma.$queryRaw<
+      [{ count: number }]
+    >`SELECT count(*)::int FROM pg_stat_activity WHERE datname = ${databaseName}`;
+    const databaseOpenedConnections = databaseOpenedConnectionsResult[0].count;
 
     return NextResponse.json({
       status: "healthy",
@@ -12,6 +28,9 @@ export async function GET() {
       services: {
         database: {
           status: "connected",
+          version: databaseServerVersion,
+          max_connections: databaseMaxConnections,
+          opened_connections: databaseOpenedConnections,
         },
       },
     });
