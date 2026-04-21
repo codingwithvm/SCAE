@@ -16,13 +16,17 @@ interface RouteAuthorizationOptions {
 type ProtectedRouteHandler = (
   request: Request,
   decodedTokenPayload: DecodedTokenPayload,
+  routeContext?: unknown,
 ) => Promise<Response>;
 
 export function withAuth(
   protectedRouteHandler: ProtectedRouteHandler,
   authorizationOptions?: RouteAuthorizationOptions,
 ) {
-  return async (incomingRequest: Request): Promise<Response> => {
+  return async (
+    incomingRequest: Request,
+    routeContext?: unknown,
+  ): Promise<Response> => {
     const authorizationHeader = incomingRequest.headers.get("Authorization");
 
     if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
@@ -52,6 +56,10 @@ export function withAuth(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    return protectedRouteHandler(incomingRequest, decodedTokenPayload);
+    return protectedRouteHandler(
+      incomingRequest,
+      decodedTokenPayload,
+      routeContext,
+    );
   };
 }
