@@ -55,6 +55,7 @@ describe("withAuth middleware", () => {
     expect(protectedRouteHandler).toHaveBeenCalledWith(
       authenticatedRequest,
       validTeacherTokenPayload,
+      undefined,
     );
   });
 
