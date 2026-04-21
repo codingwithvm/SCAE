@@ -20,7 +20,8 @@
     "jsonwebtoken": "^9.0.3",
     "next": "^15.1.11",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "swagger-ui-react": "^5.32.4"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -28,6 +29,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/swagger-ui-react": "^5.18.0",
     "prisma": "^7.7.0",
     "typescript": "^5.7.0",
     "vitest": "^4.1.4"

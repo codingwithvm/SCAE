@@ -9,8 +9,10 @@ const waitForPostgresScriptPath =
   "apps/web/infra/scripts/wait-for-postgres.mjs";
 const seedDevelopmentUsersScriptPath =
   "apps/web/infra/scripts/seed-development-users.mjs";
+const seedDevelopmentMunicipalitiesScriptPath =
+  "apps/web/infra/scripts/seed-development-municipalities.mjs";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 const LOADING_DOT_INTERVAL_MS = 500;
 let isShuttingDown = false;
 
@@ -137,11 +139,47 @@ function seedDevelopmentUsers() {
   });
 }
 
+function seedDevelopmentMunicipalities() {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const finishSeedStep = startStepLoading(
+      5,
+      "Seeding development municipalities",
+    );
+    const seedProcess = spawnProcess(
+      "node",
+      [seedDevelopmentMunicipalitiesScriptPath],
+      { stdio: "pipe" },
+    );
+
+    let seedOutput = "";
+    seedProcess.stdout.on("data", (chunk) => {
+      seedOutput += chunk.toString();
+    });
+
+    seedProcess.on("close", (exitCode) => {
+      if (exitCode !== 0) return rejectPromise(exitCode);
+      finishSeedStep();
+
+      const summaryLine = seedOutput
+        .split("\n")
+        .filter((outputLine) => outputLine.startsWith(">"))
+        .join("\n");
+
+      if (summaryLine) {
+        console.log(`\n${summaryLine}\n`);
+      }
+
+      resolvePromise();
+    });
+  });
+}
+
 async function startDevEnvironment() {
   await startDockerServices();
   await waitForPostgres();
   await runPrismaMigrations();
   await seedDevelopmentUsers();
+  await seedDevelopmentMunicipalities();
 
   console.log("> Starting Next.js...\n");
 
