@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { GET } from "@/app/api/v1/health/route";
+import { GET } from "@/app/api/v1/(public)/health/route";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
