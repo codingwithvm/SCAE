@@ -7,11 +7,10 @@ export const openapiSpec = {
   info: {
     title: "SCAE API",
     version: "1.0.0",
-    description: "Sistema de Controle e Acompanhamento Escolar — API documentation",
+    description:
+      "Sistema de Controle e Acompanhamento Escolar — API documentation",
   },
-  servers: [
-    { url: "/api/v1", description: "API v1" },
-  ],
+  servers: [{ url: "/api/v1", description: "API v1" }],
   components: {
     securitySchemes: {
       bearerAuth: {
@@ -31,7 +30,16 @@ export const openapiSpec = {
             properties: {
               id: { type: "string", format: "uuid" },
               name: { type: "string" },
-              role: { type: "string", enum: ["STUDENT", "TEACHER", "COORDINATOR", "MUNICIPAL_MANAGER", "ADMIN"] },
+              role: {
+                type: "string",
+                enum: [
+                  "STUDENT",
+                  "TEACHER",
+                  "COORDINATOR",
+                  "MUNICIPAL_MANAGER",
+                  "ADMIN",
+                ],
+              },
             },
           },
         },
@@ -52,8 +60,14 @@ export const openapiSpec = {
   },
   tags: [
     { name: "Health", description: "Service health check" },
-    { name: "Authentication", description: "Login endpoints for students and staff" },
-    { name: "Municipalities", description: "Municipality CRUD (ADMIN, MUNICIPAL_MANAGER)" },
+    {
+      name: "Authentication",
+      description: "Login endpoints for students and staff",
+    },
+    {
+      name: "Municipalities",
+      description: "Municipality CRUD (ADMIN, MUNICIPAL_MANAGER)",
+    },
   ],
   paths: {
     ...healthPaths,

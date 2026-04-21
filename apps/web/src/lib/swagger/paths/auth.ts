@@ -5,7 +5,8 @@ export const authPaths = {
     post: {
       tags: ["Authentication"],
       summary: "Student login",
-      description: "Authenticates a student using their registration number and birth date.",
+      description:
+        "Authenticates a student using their registration number and birth date.",
       requestBody: {
         required: true,
         content: {
@@ -15,7 +16,11 @@ export const authPaths = {
               required: ["registrationNumber", "birthDate"],
               properties: {
                 registrationNumber: { type: "string", example: "2025001" },
-                birthDate: { type: "string", format: "date", example: "2010-05-15" },
+                birthDate: {
+                  type: "string",
+                  format: "date",
+                  example: "2010-05-15",
+                },
               },
             },
           },
@@ -26,11 +31,16 @@ export const authPaths = {
           description: "Login successful",
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/AuthenticationTokenResponse" },
+              schema: {
+                $ref: "#/components/schemas/AuthenticationTokenResponse",
+              },
             },
           },
         },
-        "400": errorResponse("Missing or invalid fields", "registrationNumber and birthDate are required"),
+        "400": errorResponse(
+          "Missing or invalid fields",
+          "registrationNumber and birthDate are required",
+        ),
         "401": errorResponse("Invalid credentials", "Invalid credentials"),
       },
     },
@@ -40,7 +50,8 @@ export const authPaths = {
     post: {
       tags: ["Authentication"],
       summary: "Staff login",
-      description: "Authenticates a staff member (teacher, coordinator, municipal manager, or admin) using email and password.",
+      description:
+        "Authenticates a staff member (teacher, coordinator, municipal manager, or admin) using email and password.",
       requestBody: {
         required: true,
         content: {
@@ -49,7 +60,11 @@ export const authPaths = {
               type: "object",
               required: ["email", "password"],
               properties: {
-                email: { type: "string", format: "email", example: "admin@scae.dev" },
+                email: {
+                  type: "string",
+                  format: "email",
+                  example: "admin@scae.dev",
+                },
                 password: { type: "string", example: "password123" },
               },
             },
@@ -61,11 +76,16 @@ export const authPaths = {
           description: "Login successful",
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/AuthenticationTokenResponse" },
+              schema: {
+                $ref: "#/components/schemas/AuthenticationTokenResponse",
+              },
             },
           },
         },
-        "400": errorResponse("Missing fields", "email and password are required"),
+        "400": errorResponse(
+          "Missing fields",
+          "email and password are required",
+        ),
         "401": errorResponse("Invalid credentials", "Invalid credentials"),
       },
     },

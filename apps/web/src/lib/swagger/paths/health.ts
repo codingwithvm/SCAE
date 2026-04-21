@@ -3,7 +3,8 @@ export const healthPaths = {
     get: {
       tags: ["Health"],
       summary: "Check service health",
-      description: "Returns API and database connection status with version info and connection stats.",
+      description:
+        "Returns API and database connection status with version info and connection stats.",
       responses: {
         "200": {
           description: "Service is healthy and database is connected",
