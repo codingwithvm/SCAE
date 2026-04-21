@@ -32,3 +32,17 @@ model User {
   @@index([role])
   @@map("scae_users")
 }
+
+model Municipality {
+  id        String    @id @default(uuid())
+  name      String
+  state     String    @db.Char(2)
+  ibgeCode  String    @unique @map("ibge_code")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([state])
+  @@index([ibgeCode])
+  @@map("scae_municipalities")
+}
