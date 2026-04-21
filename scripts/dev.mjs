@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 
-const dockerComposeFilePath = "apps/web/infra/compose.yaml";
+const dockerComposeFilePath = "apps/web/infra/docker-compose.development.yml";
+const dockerComposeEnvFilePath = "apps/web/.env.development";
 const waitForPostgresScriptPath =
   "apps/web/infra/scripts/wait-for-postgres.mjs";
 let isShuttingDown = false;
@@ -15,6 +16,8 @@ function stopDockerServices() {
   console.log("\n🛑 Stopping Docker services...");
   const dockerStopProcess = spawnProcess("docker", [
     "compose",
+    "--env-file",
+    dockerComposeEnvFilePath,
     "-f",
     dockerComposeFilePath,
     "stop",
@@ -35,6 +38,8 @@ function waitForPostgres() {
 
 const dockerUpProcess = spawnProcess("docker", [
   "compose",
+  "--env-file",
+  dockerComposeEnvFilePath,
   "-f",
   dockerComposeFilePath,
   "up",

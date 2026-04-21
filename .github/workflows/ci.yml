@@ -1,0 +1,96 @@
+name: CI
+
+on: [pull_request]
+
+concurrency:
+  group: ci-${{ github.event.pull_request.title }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Create .env.development
+        run: |
+          cat > apps/web/.env.development << EOF
+          POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          EOF
+
+      - name: Start containers
+        run: npm run services:up
+
+      - name: Run tests
+        run: npm run test:web
+
+      - name: Stop containers
+        if: always()
+        run: npm run services:down
+
+      - name: Restore `apps/web/.env.development`
+        if: always()
+        run: git checkout -- apps/web/.env.development
+
+      - name: Check for uncommitted changes after tests
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --porcelain
+            echo "Uncommitted changes found. Please review and commit these changes if necessary."
+            exit 1
+          else
+            echo "No uncommitted changes found"
+          fi
+
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate --workspace=apps/web
+
+      - name: Check TypeScript
+        run: npm run typecheck:web
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npm run lint:eslint:check
+
+      - name: Prettier
+        run: npm run lint:prettier:check
