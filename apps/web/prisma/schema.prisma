@@ -42,7 +42,25 @@ model Municipality {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  schools School[]
+
   @@index([state])
   @@index([ibgeCode])
   @@map("scae_municipalities")
+}
+
+model School {
+  id             String       @id @default(uuid())
+  municipalityId String
+  name           String
+  inepCode       String       @unique @map("inep_code")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  municipality Municipality @relation(fields: [municipalityId], references: [id])
+
+  @@index([municipalityId])
+  @@index([inepCode])
+  @@map("scae_schools")
 }
