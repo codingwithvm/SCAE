@@ -23,8 +23,7 @@ export function withAuth(
   authorizationOptions?: RouteAuthorizationOptions,
 ) {
   return async (incomingRequest: Request): Promise<Response> => {
-    const authorizationHeader =
-      incomingRequest.headers.get("Authorization");
+    const authorizationHeader = incomingRequest.headers.get("Authorization");
 
     if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
       return NextResponse.json(
@@ -38,9 +37,7 @@ export function withAuth(
     let decodedTokenPayload: DecodedTokenPayload;
 
     try {
-      decodedTokenPayload = verifyToken(
-        bearerToken,
-      ) as DecodedTokenPayload;
+      decodedTokenPayload = verifyToken(bearerToken) as DecodedTokenPayload;
     } catch {
       return NextResponse.json(
         { error: "Invalid or expired token" },

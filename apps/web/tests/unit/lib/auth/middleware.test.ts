@@ -40,14 +40,15 @@ describe("withAuth middleware", () => {
   it("calls the handler with decoded token when token is valid", async () => {
     mockedVerifyToken.mockReturnValueOnce(validTeacherTokenPayload);
 
-    const protectedRouteHandler = vi.fn().mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: "protected" }), { status: 200 }),
-    );
+    const protectedRouteHandler = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: "protected" }), { status: 200 }),
+      );
 
     const authProtectedHandler = withAuth(protectedRouteHandler);
-    const authenticatedRequest = createAuthenticatedRequest(
-      "Bearer valid-token",
-    );
+    const authenticatedRequest =
+      createAuthenticatedRequest("Bearer valid-token");
     const authResponse = await authProtectedHandler(authenticatedRequest);
 
     expect(authResponse.status).toBe(200);
@@ -73,9 +74,7 @@ describe("withAuth middleware", () => {
   it("returns 401 when Authorization header does not start with Bearer", async () => {
     const protectedRouteHandler = vi.fn();
     const authProtectedHandler = withAuth(protectedRouteHandler);
-    const authenticatedRequest = createAuthenticatedRequest(
-      "Basic some-token",
-    );
+    const authenticatedRequest = createAuthenticatedRequest("Basic some-token");
 
     const authResponse = await authProtectedHandler(authenticatedRequest);
     const errorResponseData = await authResponse.json();
@@ -130,9 +129,7 @@ describe("withAuth middleware", () => {
 
     const protectedRouteHandler = vi.fn();
     const authProtectedHandler = withAuth(protectedRouteHandler);
-    const authenticatedRequest = createAuthenticatedRequest(
-      "Bearer bad-token",
-    );
+    const authenticatedRequest = createAuthenticatedRequest("Bearer bad-token");
 
     const authResponse = await authProtectedHandler(authenticatedRequest);
     const errorResponseData = await authResponse.json();
@@ -152,16 +149,17 @@ describe("withAuth middleware with role restrictions", () => {
   it("allows access when user role is in the allowed list", async () => {
     mockedVerifyToken.mockReturnValueOnce(validTeacherTokenPayload);
 
-    const protectedRouteHandler = vi.fn().mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: "ok" }), { status: 200 }),
-    );
+    const protectedRouteHandler = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: "ok" }), { status: 200 }),
+      );
 
     const authProtectedHandler = withAuth(protectedRouteHandler, {
       allowedRoles: ["TEACHER", "ADMIN"],
     });
-    const authenticatedRequest = createAuthenticatedRequest(
-      "Bearer valid-token",
-    );
+    const authenticatedRequest =
+      createAuthenticatedRequest("Bearer valid-token");
     const authResponse = await authProtectedHandler(authenticatedRequest);
 
     expect(authResponse.status).toBe(200);
@@ -175,9 +173,8 @@ describe("withAuth middleware with role restrictions", () => {
     const authProtectedHandler = withAuth(protectedRouteHandler, {
       allowedRoles: ["ADMIN"],
     });
-    const authenticatedRequest = createAuthenticatedRequest(
-      "Bearer valid-token",
-    );
+    const authenticatedRequest =
+      createAuthenticatedRequest("Bearer valid-token");
 
     const authResponse = await authProtectedHandler(authenticatedRequest);
     const errorResponseData = await authResponse.json();
@@ -196,12 +193,7 @@ describe("withAuth middleware with role restrictions", () => {
 
     const protectedRouteHandler = vi.fn();
     const authProtectedHandler = withAuth(protectedRouteHandler, {
-      allowedRoles: [
-        "TEACHER",
-        "SCHOOL_MANAGER",
-        "MUNICIPAL_MANAGER",
-        "ADMIN",
-      ],
+      allowedRoles: ["TEACHER", "SCHOOL_MANAGER", "MUNICIPAL_MANAGER", "ADMIN"],
     });
     const authenticatedRequest = createAuthenticatedRequest(
       "Bearer student-token",
@@ -217,14 +209,15 @@ describe("withAuth middleware with role restrictions", () => {
   it("allows any authenticated role when allowedRoles is not specified", async () => {
     mockedVerifyToken.mockReturnValueOnce(validTeacherTokenPayload);
 
-    const protectedRouteHandler = vi.fn().mockResolvedValueOnce(
-      new Response(JSON.stringify({ data: "ok" }), { status: 200 }),
-    );
+    const protectedRouteHandler = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: "ok" }), { status: 200 }),
+      );
 
     const authProtectedHandler = withAuth(protectedRouteHandler);
-    const authenticatedRequest = createAuthenticatedRequest(
-      "Bearer valid-token",
-    );
+    const authenticatedRequest =
+      createAuthenticatedRequest("Bearer valid-token");
     const authResponse = await authProtectedHandler(authenticatedRequest);
 
     expect(authResponse.status).toBe(200);
@@ -238,9 +231,8 @@ describe("withAuth middleware with role restrictions", () => {
     const authProtectedHandler = withAuth(protectedRouteHandler, {
       allowedRoles: ["ADMIN"],
     });
-    const authenticatedRequest = createAuthenticatedRequest(
-      "Bearer valid-token",
-    );
+    const authenticatedRequest =
+      createAuthenticatedRequest("Bearer valid-token");
 
     const authResponse = await authProtectedHandler(authenticatedRequest);
     const errorResponseData = await authResponse.json();

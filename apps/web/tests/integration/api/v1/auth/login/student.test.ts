@@ -13,9 +13,7 @@ import { POST } from "@/app/api/v1/(public)/auth/login/student/route";
 
 const mockedFindFirstStudent = vi.mocked(prisma.user.findFirst);
 
-function createStudentLoginRequest(
-  body: Record<string, unknown>,
-): Request {
+function createStudentLoginRequest(body: Record<string, unknown>): Request {
   return new Request("http://localhost/api/v1/auth/login/student", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
