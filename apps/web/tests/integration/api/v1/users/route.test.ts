@@ -272,7 +272,10 @@ describe("GET /api/v1/users", () => {
 
   it("lista usuários com paginação, filtros e sem passwordHash", async () => {
     mockedVerifyToken.mockReturnValueOnce(adminTokenPayload);
-    mockedUserFindMany.mockResolvedValueOnce([existingStudent, existingTeacher]);
+    mockedUserFindMany.mockResolvedValueOnce([
+      existingStudent,
+      existingTeacher,
+    ]);
     mockedUserCount.mockResolvedValueOnce(2);
 
     const listUsersRequest = createAuthenticatedRequest(
