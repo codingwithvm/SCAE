@@ -15,8 +15,12 @@ const seedDevelopmentSchoolsScriptPath =
   "apps/web/infra/scripts/seed-development-schools.mjs";
 const seedDevelopmentClassesScriptPath =
   "apps/web/infra/scripts/seed-development-classes.mjs";
+const seedDevelopmentTeacherClassesScriptPath =
+  "apps/web/infra/scripts/seed-development-teacher-classes.mjs";
+const seedDevelopmentStudentClassesScriptPath =
+  "apps/web/infra/scripts/seed-development-student-classes.mjs";
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 9;
 const LOADING_DOT_INTERVAL_MS = 500;
 let isShuttingDown = false;
 
@@ -242,6 +246,76 @@ function seedDevelopmentClasses() {
   });
 }
 
+function seedDevelopmentTeacherClasses() {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const finishSeedStep = startStepLoading(
+      8,
+      "Seeding development teacher-class links",
+    );
+    const seedProcess = spawnProcess(
+      "node",
+      [seedDevelopmentTeacherClassesScriptPath],
+      { stdio: "pipe" },
+    );
+
+    let seedOutput = "";
+    seedProcess.stdout.on("data", (chunk) => {
+      seedOutput += chunk.toString();
+    });
+
+    seedProcess.on("close", (exitCode) => {
+      if (exitCode !== 0) return rejectPromise(exitCode);
+      finishSeedStep();
+
+      const summaryBlock = seedOutput
+        .split("\n")
+        .filter((outputLine) => outputLine.startsWith(">"))
+        .join("\n");
+
+      if (summaryBlock) {
+        console.log(`\n${summaryBlock}\n`);
+      }
+
+      resolvePromise();
+    });
+  });
+}
+
+function seedDevelopmentStudentClasses() {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const finishSeedStep = startStepLoading(
+      9,
+      "Seeding development student-class links",
+    );
+    const seedProcess = spawnProcess(
+      "node",
+      [seedDevelopmentStudentClassesScriptPath],
+      { stdio: "pipe" },
+    );
+
+    let seedOutput = "";
+    seedProcess.stdout.on("data", (chunk) => {
+      seedOutput += chunk.toString();
+    });
+
+    seedProcess.on("close", (exitCode) => {
+      if (exitCode !== 0) return rejectPromise(exitCode);
+      finishSeedStep();
+
+      const summaryBlock = seedOutput
+        .split("\n")
+        .filter((outputLine) => outputLine.startsWith(">"))
+        .join("\n");
+
+      if (summaryBlock) {
+        console.log(`\n${summaryBlock}\n`);
+      }
+
+      resolvePromise();
+    });
+  });
+}
+
 async function startDevEnvironment() {
   await startDockerServices();
   await waitForPostgres();
@@ -250,6 +324,8 @@ async function startDevEnvironment() {
   await seedDevelopmentMunicipalities();
   await seedDevelopmentSchools();
   await seedDevelopmentClasses();
+  await seedDevelopmentTeacherClasses();
+  await seedDevelopmentStudentClasses();
 
   console.log("> Starting Next.js...\n");
 

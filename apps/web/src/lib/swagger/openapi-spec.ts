@@ -3,6 +3,7 @@ import { authPaths } from "./paths/auth";
 import { municipalitiesPaths } from "./paths/municipalities";
 import { schoolsPaths } from "./paths/schools";
 import { classesPaths } from "./paths/classes";
+import { usersPaths } from "./paths/users";
 
 export const openapiSpec = {
   openapi: "3.1.0",
@@ -83,6 +84,48 @@ export const openapiSpec = {
           deletedAt: { type: "string", format: "date-time", nullable: true },
         },
       },
+      User: {
+        type: "object",
+        properties: {
+          id: { type: "string", format: "uuid" },
+          role: {
+            type: "string",
+            enum: [
+              "STUDENT",
+              "TEACHER",
+              "SCHOOL_MANAGER",
+              "MUNICIPAL_MANAGER",
+              "ADMIN",
+            ],
+          },
+          name: { type: "string", example: "Maria Silva" },
+          email: {
+            type: "string",
+            format: "email",
+            example: "carlos@escola.edu.br",
+            nullable: true,
+          },
+          registrationNumber: {
+            type: "string",
+            example: "2026001",
+            nullable: true,
+          },
+          birthDate: {
+            type: "string",
+            format: "date-time",
+            nullable: true,
+          },
+          schoolId: { type: "string", format: "uuid", nullable: true },
+          municipalityId: {
+            type: "string",
+            format: "uuid",
+            nullable: true,
+          },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+          deletedAt: { type: "string", format: "date-time", nullable: true },
+        },
+      },
     },
   },
   tags: [
@@ -103,6 +146,10 @@ export const openapiSpec = {
       name: "Classes",
       description: "Class CRUD (ADMIN, MUNICIPAL_MANAGER, SCHOOL_MANAGER)",
     },
+    {
+      name: "Users",
+      description: "User CRUD (ADMIN only)",
+    },
   ],
   paths: {
     ...healthPaths,
@@ -110,5 +157,6 @@ export const openapiSpec = {
     ...municipalitiesPaths,
     ...schoolsPaths,
     ...classesPaths,
+    ...usersPaths,
   },
 };

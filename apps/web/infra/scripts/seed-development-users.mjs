@@ -19,6 +19,8 @@ const developmentUsers = [
     registrationNumber: "2026001",
     birthDate: "2015-03-10",
     passwordHash: null,
+    schoolInepCode: "35000001",
+    municipalityIbgeCode: "3550308",
   },
   {
     role: "TEACHER",
@@ -27,6 +29,8 @@ const developmentUsers = [
     registrationNumber: null,
     birthDate: null,
     passwordHash: developmentPasswordHash,
+    schoolInepCode: "35000001",
+    municipalityIbgeCode: "3550308",
   },
   {
     role: "SCHOOL_MANAGER",
@@ -35,6 +39,8 @@ const developmentUsers = [
     registrationNumber: null,
     birthDate: null,
     passwordHash: developmentPasswordHash,
+    schoolInepCode: "35000001",
+    municipalityIbgeCode: "3550308",
   },
   {
     role: "MUNICIPAL_MANAGER",
@@ -43,6 +49,8 @@ const developmentUsers = [
     registrationNumber: null,
     birthDate: null,
     passwordHash: developmentPasswordHash,
+    schoolInepCode: null,
+    municipalityIbgeCode: "3550308",
   },
   {
     role: "ADMIN",
@@ -51,6 +59,8 @@ const developmentUsers = [
     registrationNumber: null,
     birthDate: null,
     passwordHash: developmentPasswordHash,
+    schoolInepCode: null,
+    municipalityIbgeCode: null,
   },
 ];
 
@@ -78,8 +88,34 @@ async function insertDevelopmentUser(developmentUser) {
   try {
     const insertUserQuery = {
       text: `
-        INSERT INTO scae_users (id, role, name, email, "registrationNumber", "birthDate", "passwordHash", "createdAt", "updatedAt")
-        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())
+        INSERT INTO scae_users (
+          id,
+          role,
+          name,
+          email,
+          "registrationNumber",
+          "birthDate",
+          "passwordHash",
+          "schoolId",
+          "municipalityId",
+          "createdAt",
+          "updatedAt"
+        )
+        SELECT
+          gen_random_uuid(),
+          $1,
+          $2,
+          $3,
+          $4,
+          $5,
+          $6,
+          school_reference.id,
+          municipality_reference.id,
+          NOW(),
+          NOW()
+        FROM (SELECT 1) anchor
+        LEFT JOIN scae_schools school_reference ON school_reference."inep_code" = $7
+        LEFT JOIN scae_municipalities municipality_reference ON municipality_reference."ibge_code" = $8
         ON CONFLICT DO NOTHING;
       `,
       values: [
@@ -89,6 +125,8 @@ async function insertDevelopmentUser(developmentUser) {
         developmentUser.registrationNumber,
         developmentUser.birthDate,
         developmentUser.passwordHash,
+        developmentUser.schoolInepCode,
+        developmentUser.municipalityIbgeCode,
       ],
     };
 
