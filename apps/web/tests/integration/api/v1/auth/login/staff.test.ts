@@ -35,6 +35,8 @@ const existingActiveTeacher = {
   registrationNumber: null,
   birthDate: null,
   passwordHash: "$2b$12$hashedpasswordhere",
+  schoolId: null,
+  municipalityId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,

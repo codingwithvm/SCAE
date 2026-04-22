@@ -29,6 +29,8 @@ const existingActiveStudent = {
   registrationNumber: "2026001",
   birthDate: new Date("2015-03-10"),
   passwordHash: null,
+  schoolId: null,
+  municipalityId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,
