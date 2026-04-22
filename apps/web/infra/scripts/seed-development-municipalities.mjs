@@ -38,7 +38,7 @@ async function insertDevelopmentMunicipality(developmentMunicipality) {
   try {
     const insertMunicipalityQuery = {
       text: `
-        INSERT INTO scae_municipalities (id, name, state, "ibgeCode", "createdAt", "updatedAt")
+        INSERT INTO scae_municipalities (id, name, state, "ibge_code", "createdAt", "updatedAt")
         VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW())
         ON CONFLICT DO NOTHING;
       `,

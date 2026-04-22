@@ -23,13 +23,22 @@ model User {
   registrationNumber String?   @unique
   birthDate          DateTime?
   passwordHash       String?
+  schoolId           String?
+  municipalityId     String?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   deletedAt          DateTime?
 
+  school          School?       @relation(fields: [schoolId], references: [id])
+  municipality    Municipality? @relation(fields: [municipalityId], references: [id])
+  taughtClasses   TeacherClass[]
+  enrolledClasses StudentClass[]
+
   @@index([email])
   @@index([registrationNumber])
   @@index([role])
+  @@index([schoolId])
+  @@index([municipalityId])
   @@map("scae_users")
 }
 
@@ -43,6 +52,7 @@ model Municipality {
   deletedAt DateTime?
 
   schools School[]
+  users   User[]
 
   @@index([state])
   @@index([ibgeCode])
@@ -60,6 +70,7 @@ model School {
 
   municipality Municipality @relation(fields: [municipalityId], references: [id])
   classes      Class[]
+  users        User[]
 
   @@index([municipalityId])
   @@index([inepCode])
@@ -76,9 +87,36 @@ model Class {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  school School @relation(fields: [schoolId], references: [id])
+  school            School         @relation(fields: [schoolId], references: [id])
+  teacherAssignments TeacherClass[]
+  studentEnrollments StudentClass[]
 
   @@index([schoolId])
   @@index([year])
   @@map("scae_classes")
+}
+
+model TeacherClass {
+  teacherId String
+  classId   String
+
+  teacher User  @relation(fields: [teacherId], references: [id])
+  class   Class @relation(fields: [classId], references: [id])
+
+  @@id([teacherId, classId])
+  @@index([classId])
+  @@map("scae_teacher_classes")
+}
+
+model StudentClass {
+  studentId  String
+  classId    String
+  enrolledAt DateTime @default(now())
+
+  student User  @relation(fields: [studentId], references: [id])
+  class   Class @relation(fields: [classId], references: [id])
+
+  @@id([studentId, classId])
+  @@index([classId])
+  @@map("scae_student_classes")
 }
