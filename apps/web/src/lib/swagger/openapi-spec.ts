@@ -2,6 +2,7 @@ import { healthPaths } from "./paths/health";
 import { authPaths } from "./paths/auth";
 import { municipalitiesPaths } from "./paths/municipalities";
 import { schoolsPaths } from "./paths/schools";
+import { classesPaths } from "./paths/classes";
 
 export const openapiSpec = {
   openapi: "3.1.0",
@@ -69,6 +70,19 @@ export const openapiSpec = {
           deletedAt: { type: "string", format: "date-time", nullable: true },
         },
       },
+      Class: {
+        type: "object",
+        properties: {
+          id: { type: "string", format: "uuid" },
+          schoolId: { type: "string", format: "uuid" },
+          name: { type: "string", example: "5º Ano A" },
+          grade: { type: "integer", minimum: 1, maximum: 9, example: 5 },
+          year: { type: "integer", example: 2026 },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+          deletedAt: { type: "string", format: "date-time", nullable: true },
+        },
+      },
     },
   },
   tags: [
@@ -85,11 +99,16 @@ export const openapiSpec = {
       name: "Schools",
       description: "School CRUD (ADMIN, MUNICIPAL_MANAGER, SCHOOL_MANAGER)",
     },
+    {
+      name: "Classes",
+      description: "Class CRUD (ADMIN, MUNICIPAL_MANAGER, SCHOOL_MANAGER)",
+    },
   ],
   paths: {
     ...healthPaths,
     ...authPaths,
     ...municipalitiesPaths,
     ...schoolsPaths,
+    ...classesPaths,
   },
 };
