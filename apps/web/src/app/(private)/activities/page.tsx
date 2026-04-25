@@ -239,9 +239,12 @@ export default function ActivitiesPage() {
 
         {/* Footer link */}
         <div className="flex justify-center py-2">
-          <button className="text-sm font-semibold text-primary hover:opacity-75 transition-opacity font-(family-name:--font-inter)]">
+          <Link
+            href="/activities/history"
+            className="text-sm font-semibold text-primary hover:opacity-75 transition-opacity font-(family-name:--font-inter)] no-underline"
+          >
             Ver histórico completo
-          </button>
+          </Link>
         </div>
       </main>
     </div>
