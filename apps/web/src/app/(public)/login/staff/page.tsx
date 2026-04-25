@@ -47,7 +47,13 @@ export default function LoginStaffPage() {
 
       const role = loginResponseBody.user?.role as string | undefined;
       const destination =
-        role === "STUDENT" ? "/dashboard" : "/teacher/dashboard";
+        role === "SCHOOL_MANAGER"
+          ? "/school/dashboard"
+          : role === "MUNICIPAL_MANAGER"
+            ? "/municipal/dashboard"
+            : role === "STUDENT"
+              ? "/dashboard"
+              : "/teacher/dashboard";
       router.push(destination);
     } catch {
       setErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
