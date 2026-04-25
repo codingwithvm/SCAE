@@ -17,7 +17,13 @@ export default function QuizQuestionsPage() {
   const router = useRouter();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, ScaleValue>>({});
+  const [answers, setAnswers] = useState<Record<number, ScaleValue>>(() => {
+    if (typeof window === "undefined") return {};
+    const storedAnswers = sessionStorage.getItem("quiz_answers");
+    return storedAnswers
+      ? (JSON.parse(storedAnswers) as Record<number, ScaleValue>)
+      : {};
+  });
 
   const currentQuestion = QUIZ_QUESTIONS[currentQuestionIndex];
   const currentAnswer = answers[currentQuestion.id];
@@ -28,10 +34,14 @@ export default function QuizQuestionsPage() {
   const isLastQuestion = currentQuestionIndex === TOTAL_QUESTIONS - 1;
 
   function handleSelectOption(scaleValue: ScaleValue) {
-    setAnswers((previousAnswers) => ({
-      ...previousAnswers,
-      [currentQuestion.id]: scaleValue,
-    }));
+    setAnswers((previousAnswers) => {
+      const updatedAnswers = {
+        ...previousAnswers,
+        [currentQuestion.id]: scaleValue,
+      };
+      sessionStorage.setItem("quiz_answers", JSON.stringify(updatedAnswers));
+      return updatedAnswers;
+    });
   }
 
   function handleNext() {
