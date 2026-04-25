@@ -31,7 +31,6 @@ import {
   type Activity,
 } from "@/lib/activities/activities";
 
-// Map icon names from mock data to Lucide components
 const ICON_MAP: Record<
   string,
   React.ComponentType<{
@@ -288,7 +287,10 @@ function ActivityCard({ activity }: ActivityCardProps) {
   const IconComponent = ICON_MAP[activity.iconName] ?? BookOpen;
 
   return (
-    <div className="flex flex-col rounded-2xl border border-border-light bg-background overflow-hidden">
+    <Link
+      href={`/activities/${activity.id}`}
+      className="flex flex-col rounded-2xl border border-border-light bg-background overflow-hidden hover:shadow-[0_4px_16px_rgba(30,79,174,0.12)] transition-shadow no-underline"
+    >
       {/* Thumbnail */}
       <div
         className="flex h-24 items-center justify-center"
@@ -318,6 +320,6 @@ function ActivityCard({ activity }: ActivityCardProps) {
           </Badge>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
