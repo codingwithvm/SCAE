@@ -16,7 +16,7 @@ export default function QuizReviewPage() {
     const storedAnswers = sessionStorage.getItem("quiz_answers");
 
     if (!storedAnswers) {
-      router.replace("/questionario/perguntas");
+      router.replace("/quiz/questions");
       return;
     }
 
@@ -127,7 +127,7 @@ export default function QuizReviewPage() {
             <Button
               variant="outline"
               size="md"
-              onClick={() => router.push("/questionario/perguntas")}
+              onClick={() => router.push("/quiz/questions")}
               className="flex items-center gap-2"
             >
               <ArrowLeft size={18} aria-hidden="true" />
