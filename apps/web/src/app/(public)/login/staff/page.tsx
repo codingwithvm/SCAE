@@ -1,14 +1,58 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { InputGroup } from "@/components/ui/InputGroup";
 import { Button } from "@/components/ui/Button";
 
-export const metadata: Metadata = {
-  title: "Acesso do Professor — SCAE",
-};
-
 export default function LoginStaffPage() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleStaffLoginSubmit(
+    event: React.SyntheticEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+    setErrorMessage(undefined);
+
+    if (!email || !password) {
+      setErrorMessage("Preencha todos os campos para continuar.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const loginResponse = await fetch("/api/v1/auth/login/staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const loginResponseBody = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        setErrorMessage("E-mail ou senha inválidos.");
+        return;
+      }
+
+      localStorage.setItem("auth_token", loginResponseBody.token);
+      localStorage.setItem("auth_user", JSON.stringify(loginResponseBody.user));
+
+      router.push("/dashboard");
+    } catch {
+      setErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-surface">
       <Header variant="auth" backHref="/login" />
@@ -20,7 +64,10 @@ export default function LoginStaffPage() {
               Acesso Institucional
             </h1>
 
-            <form className="flex flex-col gap-4">
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handleStaffLoginSubmit}
+            >
               <InputGroup
                 id="email"
                 label="E-mail"
@@ -28,6 +75,8 @@ export default function LoginStaffPage() {
                 placeholder="professor@escola.edu.br"
                 autoComplete="email"
                 required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
               />
               <InputGroup
                 id="password"
@@ -36,14 +85,22 @@ export default function LoginStaffPage() {
                 placeholder="Sua senha"
                 autoComplete="current-password"
                 required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
               />
+
+              {errorMessage && (
+                <p className="text-sm text-red-600">{errorMessage}</p>
+              )}
+
               <Button
                 variant="primary"
                 size="md"
                 type="submit"
                 className="w-full mt-2"
+                disabled={isSubmitting}
               >
-                Entrar
+                {isSubmitting ? "Entrando..." : "Entrar"}
               </Button>
               <Link
                 href="/login/staff/forgot-password"
