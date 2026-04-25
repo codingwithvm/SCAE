@@ -24,8 +24,7 @@ export default function QuizReviewPage() {
   }, [router]);
 
   function handleSubmit() {
-    sessionStorage.removeItem("quiz_answers");
-    router.push("/dashboard");
+    router.push("/quiz/profile");
   }
 
   const answeredCount = Object.keys(answers).length;
