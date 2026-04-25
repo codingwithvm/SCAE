@@ -1,6 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface NavLink {
@@ -21,7 +23,13 @@ interface HeaderAuthProps {
   backLabel?: string;
 }
 
-type HeaderProps = HeaderPublicProps | HeaderAuthProps;
+interface HeaderAppProps {
+  variant: "app";
+  userName: string;
+  onLogout: () => void;
+}
+
+type HeaderProps = HeaderPublicProps | HeaderAuthProps | HeaderAppProps;
 
 const defaultNavLinks: NavLink[] = [
   { label: "Sobre", href: "/sobre" },
@@ -47,6 +55,43 @@ export function Header(props: HeaderProps) {
           <ArrowLeft size={18} aria-hidden="true" />
           {backLabel}
         </Link>
+      </header>
+    );
+  }
+
+  if (props.variant === "app") {
+    const { userName, onLogout } = props;
+    const userInitial = userName.charAt(0).toUpperCase();
+
+    return (
+      <header className={base}>
+        <Link href="/dashboard" aria-label="Início — SCAE">
+          <Image src="/logo.png" alt="SCAE" width={116} height={32} priority />
+        </Link>
+
+        <div className="flex items-center gap-4">
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary"
+            aria-hidden="true"
+          >
+            <span className="text-sm font-semibold text-white font-(family-name:--font-poppins)]">
+              {userInitial}
+            </span>
+          </div>
+
+          <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
+            {userName}
+          </span>
+
+          <button
+            type="button"
+            onClick={onLogout}
+            aria-label="Sair"
+            className="flex items-center justify-center text-text-secondary transition-colors hover:text-error"
+          >
+            <LogOut size={18} aria-hidden="true" />
+          </button>
+        </div>
       </header>
     );
   }
