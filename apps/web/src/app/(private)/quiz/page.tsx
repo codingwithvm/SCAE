@@ -10,7 +10,7 @@ export default function QuizIntroPage() {
   const router = useRouter();
 
   function handleStart() {
-    router.push("/questionario/perguntas");
+    router.push("/quiz/questions");
   }
 
   return (

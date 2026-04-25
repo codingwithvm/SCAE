@@ -46,7 +46,7 @@ export default function QuizQuestionsPage() {
 
   function handleNext() {
     if (isLastQuestion) {
-      router.push("/questionario/resultado");
+      router.push("/quiz/review");
       return;
     }
 
@@ -171,7 +171,7 @@ export default function QuizQuestionsPage() {
                 </Button>
               ) : (
                 <Link
-                  href="/questionario"
+                  href="/quiz"
                   className="flex items-center gap-1.5 text-sm font-medium text-primary hover:opacity-75 transition-opacity no-underline"
                 >
                   <ArrowLeft size={18} aria-hidden="true" />
