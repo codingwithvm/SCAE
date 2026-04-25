@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Sparkles, BookOpen } from "lucide-react";
+import { Sparkles, BookOpen, ArrowRight } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
+import { type ProfileName } from "@/lib/quiz/profile";
+import { PROFILE_DATA } from "@/lib/quiz/profile-data";
 
 interface AuthenticatedUser {
   id: string;
@@ -17,6 +19,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [authenticatedUser, setAuthenticatedUser] =
     useState<AuthenticatedUser | null>(null);
+  const [quizProfile, setQuizProfile] = useState<ProfileName | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("auth_user");
@@ -27,11 +30,17 @@ export default function DashboardPage() {
     }
 
     setAuthenticatedUser(JSON.parse(storedUser) as AuthenticatedUser);
+
+    const storedProfile = localStorage.getItem(
+      "quiz_profile",
+    ) as ProfileName | null;
+    setQuizProfile(storedProfile);
   }, [router]);
 
   function handleLogout() {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
+    localStorage.removeItem("quiz_profile");
     router.replace("/login");
   }
 
@@ -40,6 +49,7 @@ export default function DashboardPage() {
   }
 
   const firstName = authenticatedUser.name?.split(" ")[0] ?? "Aluno";
+  const profileData = quizProfile ? PROFILE_DATA[quizProfile] : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-surface">
@@ -66,17 +76,46 @@ export default function DashboardPage() {
           <div className="flex flex-1 flex-col rounded-2xl border border-border-light bg-background shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
             <div className="flex flex-col gap-1 px-6 py-5">
               <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
-                Descubra seu perfil de aprendizagem!
+                {profileData
+                  ? "Seu perfil de aprendizagem"
+                  : "Descubra seu perfil de aprendizagem!"}
               </h2>
               <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-                Responda o questionário para saber como você aprende melhor.
+                {profileData
+                  ? `Você é ${profileData.name}. Refaça o questionário quando quiser.`
+                  : "Responda o questionário para saber como você aprende melhor."}
               </p>
             </div>
 
             <div className="flex flex-col items-center gap-5 px-6 pb-5 pt-0">
-              <Sparkles size={48} className="text-primary" aria-hidden="true" />
+              {profileData ? (
+                <span
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
+                  style={{
+                    backgroundColor: profileData.badgeBg,
+                    color: profileData.badgeText,
+                  }}
+                >
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: profileData.color }}
+                    aria-hidden="true"
+                  />
+                  {profileData.name}
+                </span>
+              ) : (
+                <Sparkles
+                  size={48}
+                  className="text-primary"
+                  aria-hidden="true"
+                />
+              )}
               <Button variant="primary" size="md" className="w-full" asChild>
-                <Link href="/quiz">Começar questionário</Link>
+                <Link href="/quiz">
+                  {profileData
+                    ? "Refazer questionário"
+                    : "Começar questionário"}
+                </Link>
               </Button>
             </div>
           </div>
@@ -88,15 +127,43 @@ export default function DashboardPage() {
                 Suas atividades
               </h2>
               <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-                Primeiro, descubra seu perfil respondendo o questionário.
+                {quizProfile
+                  ? "Atividades selecionadas para o seu perfil."
+                  : "Primeiro, descubra seu perfil respondendo o questionário."}
               </p>
             </div>
 
             <div className="flex flex-col items-center gap-5 px-6 pb-5 pt-0">
-              <BookOpen size={48} className="text-accent" aria-hidden="true" />
-              <Button variant="secondary" size="md" className="w-full" asChild>
-                <Link href="/quiz">Responder questionário</Link>
-              </Button>
+              <BookOpen
+                size={48}
+                className={quizProfile ? "text-accent" : "text-text-muted"}
+                aria-hidden="true"
+              />
+              {quizProfile ? (
+                <Button
+                  variant="secondary"
+                  size="md"
+                  className="w-full"
+                  asChild
+                >
+                  <Link
+                    href="/activities"
+                    className="flex items-center justify-center gap-2"
+                  >
+                    Acessar atividades
+                    <ArrowRight size={18} aria-hidden="true" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="w-full opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  Responder questionário primeiro
+                </Button>
+              )}
             </div>
           </div>
         </div>
