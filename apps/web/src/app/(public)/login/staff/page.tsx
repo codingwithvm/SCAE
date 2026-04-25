@@ -45,7 +45,10 @@ export default function LoginStaffPage() {
       localStorage.setItem("auth_token", loginResponseBody.token);
       localStorage.setItem("auth_user", JSON.stringify(loginResponseBody.user));
 
-      router.push("/dashboard");
+      const role = loginResponseBody.user?.role as string | undefined;
+      const destination =
+        role === "STUDENT" ? "/dashboard" : "/teacher/dashboard";
+      router.push(destination);
     } catch {
       setErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
     } finally {
