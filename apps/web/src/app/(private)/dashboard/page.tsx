@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles, BookOpen } from "lucide-react";
+import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 
 interface AuthenticatedUser {
@@ -9,14 +11,6 @@ interface AuthenticatedUser {
   name: string | null;
   role: string;
 }
-
-const ROLE_LABEL: Record<string, string> = {
-  STUDENT: "Aluno",
-  TEACHER: "Professor",
-  SCHOOL_MANAGER: "Gestor Escolar",
-  MUNICIPAL_MANAGER: "Gestor Municipal",
-  ADMIN: "Administrador",
-};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -44,22 +38,66 @@ export default function DashboardPage() {
     return null;
   }
 
-  const roleLabel =
-    ROLE_LABEL[authenticatedUser.role] ?? authenticatedUser.role;
-  const welcomeMessage = authenticatedUser.name
-    ? `Bem-vindo, ${authenticatedUser.name}!`
-    : `Bem-vindo, ${roleLabel}!`;
+  const firstName = authenticatedUser.name?.split(" ")[0] ?? "Aluno";
 
   return (
     <div className="flex flex-col min-h-screen bg-surface">
-      <main className="flex flex-1 items-center justify-center">
-        <div className="flex flex-col items-center gap-6">
-          <h1 className="text-2xl font-bold text-text-primary">
-            {welcomeMessage}
+      <Header
+        variant="app"
+        userName={authenticatedUser.name ?? firstName}
+        onLogout={handleLogout}
+      />
+
+      <main className="flex flex-1 flex-col items-center gap-6 px-20 py-8">
+        {/* Saudação */}
+        <div className="flex w-full flex-col items-center gap-2">
+          <h1 className="text-2xl font-semibold text-text-primary font-(family-name:--font-poppins)]">
+            Olá, {firstName}!
           </h1>
-          <Button variant="secondary" size="md" onClick={handleLogout}>
-            Sair
-          </Button>
+          <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
+            Bem-vindo ao SCAE. Veja o que temos para você.
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="flex w-full gap-6">
+          {/* Card — Perfil de aprendizagem */}
+          <div className="flex flex-1 flex-col rounded-2xl border border-border-light bg-background shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
+            <div className="flex flex-col gap-1 px-6 py-5">
+              <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
+                Descubra seu perfil de aprendizagem!
+              </h2>
+              <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+                Responda o questionário para saber como você aprende melhor.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-5 px-6 pb-5 pt-0">
+              <Sparkles size={48} className="text-primary" aria-hidden="true" />
+              <Button variant="primary" size="md" className="w-full">
+                Começar questionário
+              </Button>
+            </div>
+          </div>
+
+          {/* Card — Atividades */}
+          <div className="flex flex-1 flex-col rounded-2xl border border-border-light bg-background shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
+            <div className="flex flex-col gap-1 px-6 py-5">
+              <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
+                Suas atividades
+              </h2>
+              <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+                Primeiro, descubra seu perfil respondendo o questionário.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-5 px-6 pb-5 pt-0">
+              <BookOpen size={48} className="text-accent" aria-hidden="true" />
+              <Button variant="secondary" size="md" className="w-full">
+                Responder questionário
+              </Button>
+            </div>
+          </div>
         </div>
       </main>
     </div>
