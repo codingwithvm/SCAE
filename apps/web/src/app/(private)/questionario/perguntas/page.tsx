@@ -35,8 +35,6 @@ export default function QuizQuestionsPage() {
   }
 
   function handleNext() {
-    if (!currentAnswer) return;
-
     if (isLastQuestion) {
       router.push("/questionario/resultado");
       return;
@@ -150,31 +148,32 @@ export default function QuizQuestionsPage() {
 
           {/* Navegação */}
           <div className="flex items-center justify-between">
-            {!isFirstQuestion ? (
-              <Button
-                variant="outline"
-                size="md"
-                onClick={handlePrevious}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft size={18} aria-hidden="true" />
-                Anterior
-              </Button>
-            ) : (
-              <Link
-                href="/questionario"
-                className="flex items-center gap-1.5 text-sm font-medium text-primary hover:opacity-75 transition-opacity no-underline"
-              >
-                <ArrowLeft size={18} aria-hidden="true" />
-                Voltar
-              </Link>
-            )}
+            <div className="flex items-center gap-4">
+              {!isFirstQuestion ? (
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={handlePrevious}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft size={18} aria-hidden="true" />
+                  Anterior
+                </Button>
+              ) : (
+                <Link
+                  href="/questionario"
+                  className="flex items-center gap-1.5 text-sm font-medium text-primary hover:opacity-75 transition-opacity no-underline"
+                >
+                  <ArrowLeft size={18} aria-hidden="true" />
+                  Voltar
+                </Link>
+              )}
+            </div>
 
             <Button
               variant="primary"
               size="md"
               onClick={handleNext}
-              disabled={!currentAnswer}
               className="flex items-center gap-2"
             >
               {isLastQuestion ? "Finalizar" : "Próxima"}
