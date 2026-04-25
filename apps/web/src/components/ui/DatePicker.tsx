@@ -11,9 +11,16 @@ interface DatePickerProps {
   label: string;
   name?: string;
   required?: boolean;
+  onDateChange?: (isoDate: string | undefined) => void;
 }
 
-export function DatePicker({ id, label, name, required }: DatePickerProps) {
+export function DatePicker({
+  id,
+  label,
+  name,
+  required,
+  onDateChange,
+}: DatePickerProps) {
   const autoId = useId();
   const inputId = id ?? autoId;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,15 +52,18 @@ export function DatePicker({ id, label, name, required }: DatePickerProps) {
     if (isValid(parsedDate)) {
       setSelected(parsedDate);
       setMonth(parsedDate);
+      onDateChange?.(format(parsedDate, "yyyy-MM-dd"));
       return;
     }
 
     setSelected(undefined);
+    onDateChange?.(undefined);
   }
 
   function handleSelect(date: Date | undefined) {
     setSelected(date);
     setInputValue(date ? format(date, "dd/MM/yyyy") : "");
+    onDateChange?.(date ? format(date, "yyyy-MM-dd") : undefined);
     if (date) {
       setMonth(date);
     }
