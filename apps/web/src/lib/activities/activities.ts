@@ -20,7 +20,72 @@ export interface Activity {
   thumbColor: string;
   iconColor: string;
   profiles: ProfileName[];
+  completedAt?: string;
+  score?: number;
 }
+
+export interface HistoryEntry {
+  id: number;
+  activityId: number;
+  title: string;
+  difficulty: ActivityDifficulty;
+  status: ActivityStatus;
+  iconName: string;
+  thumbColor: string;
+  iconColor: string;
+  date: string;
+  score?: number;
+}
+
+export const MOCK_HISTORY: HistoryEntry[] = [
+  {
+    id: 1,
+    activityId: 1,
+    title: "Crie sua História",
+    difficulty: "Fácil",
+    status: "Concluída",
+    iconName: "palette",
+    thumbColor: "#DBEAFE",
+    iconColor: "#3B82F6",
+    date: "Concluída em 10/04/2026",
+    score: 92,
+  },
+  {
+    id: 2,
+    activityId: 2,
+    title: "Compondo Melodias",
+    difficulty: "Médio",
+    status: "Em andamento",
+    iconName: "music",
+    thumbColor: "#D1FAE5",
+    iconColor: "#10B981",
+    date: "Iniciada em 08/04/2026",
+  },
+  {
+    id: 3,
+    activityId: 3,
+    title: "Desenho Livre",
+    difficulty: "Difícil",
+    status: "Concluída",
+    iconName: "pen-tool",
+    thumbColor: "#FEE2E2",
+    iconColor: "#EF4444",
+    date: "Concluída em 05/04/2026",
+    score: 84,
+  },
+  {
+    id: 4,
+    activityId: 4,
+    title: "Aventura Literária",
+    difficulty: "Médio",
+    status: "Concluída",
+    iconName: "book-open",
+    thumbColor: "#FEF3C7",
+    iconColor: "#D97706",
+    date: "Concluída em 01/04/2026",
+    score: 88,
+  },
+];
 
 export const MOCK_ACTIVITIES: Activity[] = [
   {
