@@ -38,6 +38,10 @@ export default function QuizProfilePage() {
     const answers = JSON.parse(storedAnswers) as Record<number, ScaleValue>;
     const result = calculateProfile(answers);
     sessionStorage.removeItem("quiz_answers");
+
+    // Persist profile in localStorage so dashboard and activities page can read it
+    localStorage.setItem("quiz_profile", result.profile);
+
     setProfileResult(result);
   }, [router]);
 
@@ -121,7 +125,7 @@ export default function QuizProfilePage() {
 
             <Button variant="primary" size="md" asChild>
               <Link
-                href="/dashboard"
+                href="/activities"
                 className="flex items-center gap-2 no-underline"
               >
                 Ver atividades
@@ -134,7 +138,6 @@ export default function QuizProfilePage() {
           <div className="flex flex-1 flex-col gap-5">
             {/* Bi-axial chart card */}
             <div className="flex items-center gap-5 rounded-2xl border border-border-light bg-background p-5">
-              {/* SVG chart */}
               <div className="relative shrink-0">
                 <svg
                   width={CHART_SIZE}
@@ -142,7 +145,6 @@ export default function QuizProfilePage() {
                   className="rounded-md bg-surface"
                   aria-label="Gráfico bi-axial de perfil"
                 >
-                  {/* Axes */}
                   <line
                     x1={0}
                     y1={CHART_CENTER}
@@ -159,13 +161,10 @@ export default function QuizProfilePage() {
                     stroke="#E2E8F0"
                     strokeWidth={1}
                   />
-
-                  {/* Quadrant labels */}
                   <text
                     x={CHART_SIZE - 8}
                     y={16}
                     textAnchor="end"
-                    className="text-[10px] font-semibold"
                     fill="#F6AD55"
                     fontSize={10}
                     fontWeight={600}
@@ -206,8 +205,6 @@ export default function QuizProfilePage() {
                   >
                     Prático
                   </text>
-
-                  {/* Result dot */}
                   <circle
                     cx={dotX}
                     cy={dotY}
@@ -218,7 +215,6 @@ export default function QuizProfilePage() {
                 </svg>
               </div>
 
-              {/* Legend */}
               <div className="flex flex-col gap-3">
                 <p className="text-base font-semibold text-text-primary font-(family-name:--font-poppins)]">
                   Gráfico bi-axial
