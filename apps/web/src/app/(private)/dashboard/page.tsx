@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Sparkles, BookOpen } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
@@ -74,8 +75,8 @@ export default function DashboardPage() {
 
             <div className="flex flex-col items-center gap-5 px-6 pb-5 pt-0">
               <Sparkles size={48} className="text-primary" aria-hidden="true" />
-              <Button variant="primary" size="md" className="w-full">
-                Começar questionário
+              <Button variant="primary" size="md" className="w-full" asChild>
+                <Link href="/questionario">Começar questionário</Link>
               </Button>
             </div>
           </div>
@@ -93,8 +94,8 @@ export default function DashboardPage() {
 
             <div className="flex flex-col items-center gap-5 px-6 pb-5 pt-0">
               <BookOpen size={48} className="text-accent" aria-hidden="true" />
-              <Button variant="secondary" size="md" className="w-full">
-                Responder questionário
+              <Button variant="secondary" size="md" className="w-full" asChild>
+                <Link href="/questionario">Responder questionário</Link>
               </Button>
             </div>
           </div>
