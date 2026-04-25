@@ -36,8 +36,8 @@ export default function TeacherLayoutClient({
     }
 
     const parsedUser = JSON.parse(storedUser) as AuthenticatedUser;
-    if (parsedUser.role === "STUDENT") {
-      router.replace("/dashboard");
+    if (parsedUser.role !== "TEACHER") {
+      router.replace("/login");
       return;
     }
 
