@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, User, LogOut } from "lucide-react";
+import { LayoutDashboard, ClipboardList, User } from "lucide-react";
 
 interface TeacherSidebarProps {
   userName: string;
-  onLogout: () => void;
 }
 
 const NAV_ITEMS = [
@@ -19,55 +18,43 @@ const NAV_ITEMS = [
   { label: "Meu perfil", href: "/teacher/profile", icon: User },
 ];
 
-export function TeacherSidebar({ userName, onLogout }: TeacherSidebarProps) {
+export function TeacherSidebar({ userName: _userName }: TeacherSidebarProps) {
   const pathname = usePathname();
-  const initial = userName.charAt(0).toUpperCase();
+
+  function isActive(href: string) {
+    if (href === "/teacher/assessment") {
+      return pathname === href || pathname.startsWith("/teacher/quiz");
+    }
+    return pathname === href || pathname.startsWith(href + "/");
+  }
 
   return (
-    <aside className="flex flex-col justify-between w-65 shrink-0 bg-background border-r border-border-light h-full">
-      {/* Nav items */}
-      <nav className="flex flex-col gap-1 px-4 py-6">
+    <aside className="flex flex-col w-65 shrink-0 bg-background border-r border-border-light min-h-full">
+      <nav className="flex flex-col gap-1 px-4 pt-6">
         {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-          const isActive = pathname === href || pathname.startsWith(href + "/");
+          const active = isActive(href);
 
           return (
             <Link
               key={href}
               href={href}
               className={[
-                "flex items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors no-underline",
-                isActive
-                  ? "bg-primary text-white font-medium"
+                "flex items-center gap-2.5 rounded-md px-3.5 py-2.5 text-sm font-medium transition-colors no-underline",
+                active
+                  ? "bg-primary text-white"
                   : "text-text-secondary hover:bg-surface",
               ].join(" ")}
             >
-              <Icon size={18} aria-hidden="true" />
+              <Icon
+                size={18}
+                className={active ? "text-white" : "text-text-secondary"}
+                aria-hidden="true"
+              />
               {label}
             </Link>
           );
         })}
       </nav>
-
-      {/* User + logout */}
-      <div className="flex flex-col gap-1 px-4 py-4 border-t border-border-light">
-        <div className="flex items-center gap-2.5 px-3.5 py-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary shrink-0">
-            <span className="text-xs font-semibold text-white font-(family-name:--font-poppins)]">
-              {initial}
-            </span>
-          </div>
-          <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)] truncate">
-            {userName}
-          </span>
-        </div>
-        <button
-          onClick={onLogout}
-          className="flex items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-sm font-medium text-error hover:bg-surface transition-colors cursor-pointer w-full"
-        >
-          <LogOut size={18} aria-hidden="true" />
-          Sair
-        </button>
-      </div>
     </aside>
   );
 }
