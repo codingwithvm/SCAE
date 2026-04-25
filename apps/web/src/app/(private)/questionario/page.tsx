@@ -42,20 +42,20 @@ export default function QuizIntroPage() {
           </div>
 
           {/* Título */}
-          <h1 className="text-2xl font-semibold text-text-primary text-center font-[family-name:var(--font-poppins)]">
+          <h1 className="text-2xl font-semibold text-text-primary text-center font-(family-name:--font-poppins)]">
             Vamos descobrir como você aprende melhor!
           </h1>
 
           {/* Instruções */}
           <div className="flex flex-col gap-3 text-center">
-            <p className="text-base text-text-secondary font-[family-name:var(--font-inter)]">
+            <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
               Você vai responder 16 perguntas simples. Não existem respostas
               certas ou erradas.
             </p>
-            <p className="text-base text-text-secondary font-[family-name:var(--font-inter)]">
+            <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
               Escolha a opção que mais combina com você.
             </p>
-            <p className="text-base text-text-secondary font-[family-name:var(--font-inter)]">
+            <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
               Você pode parar a qualquer momento e continuar depois.
             </p>
           </div>
@@ -68,19 +68,19 @@ export default function QuizIntroPage() {
                 className="text-primary"
                 aria-hidden="true"
               />
-              <span className="text-sm font-medium text-text-primary font-[family-name:var(--font-inter)]">
+              <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
                 São 16 perguntas
               </span>
             </div>
             <div className="flex items-center gap-3">
               <Timer size={20} className="text-primary" aria-hidden="true" />
-              <span className="text-sm font-medium text-text-primary font-[family-name:var(--font-inter)]">
+              <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
                 Sem tempo limite
               </span>
             </div>
             <div className="flex items-center gap-3">
               <Undo2 size={20} className="text-primary" aria-hidden="true" />
-              <span className="text-sm font-medium text-text-primary font-[family-name:var(--font-inter)]">
+              <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
                 Você pode voltar e mudar
               </span>
             </div>
