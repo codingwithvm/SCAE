@@ -51,9 +51,11 @@ export default function LoginStaffPage() {
           ? "/school/dashboard"
           : role === "MUNICIPAL_MANAGER"
             ? "/municipal/dashboard"
-            : role === "STUDENT"
-              ? "/dashboard"
-              : "/teacher/dashboard";
+            : role === "ADMIN"
+              ? "/admin/dashboard"
+              : role === "STUDENT"
+                ? "/dashboard"
+                : "/teacher/dashboard";
       router.push(destination);
     } catch {
       setErrorMessage("Erro ao conectar com o servidor. Tente novamente.");
