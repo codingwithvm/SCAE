@@ -35,10 +35,8 @@ export interface ExtraPair {
   B: PairOption;
 }
 
-/** Rankings per block: { b0: { CA: 4, EC: 3, EA: 2, OR: 1 }, ... } */
 export type RankingsMap = Record<string, Record<Dimension, number>>;
 
-/** MEES answers: { p1: "A", p2: "B", ... } */
 export type MEESAnswers = Record<string, "A" | "B">;
 
 export type Axis = "X" | "Y";

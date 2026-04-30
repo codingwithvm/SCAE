@@ -1,4 +1,3 @@
-// server-only
 import "server-only";
 
 import type { Block, MEESSection, ExtraPair } from "./types";
