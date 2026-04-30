@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Sparkles, BookOpen, ArrowRight } from "lucide-react";
+import { Sparkles, BookOpen, ArrowRight, Loader2 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 import { type ProfileName } from "@/lib/quiz/profile";
@@ -15,11 +15,25 @@ interface AuthenticatedUser {
   role: string;
 }
 
+interface PendingRelease {
+  releaseId: string;
+  instrument: string;
+}
+
+const INSTRUMENT_LABELS: Record<string, string> = {
+  MCEES_1A4: "MCEES — 1º ao 4º ano",
+  MCEES_5A9: "MCEES — 5º ao 9º ano",
+  MCEES_PROF: "MCEES — Professor",
+  MEES_PROF: "MEES — Professor",
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const [authenticatedUser, setAuthenticatedUser] =
     useState<AuthenticatedUser | null>(null);
   const [quizProfile, setQuizProfile] = useState<ProfileName | null>(null);
+  const [pendingReleases, setPendingReleases] = useState<PendingRelease[]>([]);
+  const [loadingReleases, setLoadingReleases] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("auth_user");
@@ -35,6 +49,26 @@ export default function DashboardPage() {
       "quiz_profile",
     ) as ProfileName | null;
     setQuizProfile(storedProfile);
+
+    const token = localStorage.getItem("auth_token");
+    fetch("/api/v1/assessments/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({}),
+    })
+      .then((res) => res.json())
+      .then((data: { allowed: boolean; releases?: PendingRelease[] }) => {
+        if (data.allowed && data.releases) {
+          setPendingReleases(data.releases);
+        }
+        setLoadingReleases(false);
+      })
+      .catch(() => {
+        setLoadingReleases(false);
+      });
   }, [router]);
 
   function handleLogout() {
@@ -44,12 +78,18 @@ export default function DashboardPage() {
     router.replace("/login");
   }
 
+  function handleStartAssessment(release: PendingRelease) {
+    const slug = release.instrument.toLowerCase().replace("_", "_");
+    router.push(`/assessment/${slug}`);
+  }
+
   if (!authenticatedUser) {
     return null;
   }
 
   const firstName = authenticatedUser.name?.split(" ")[0] ?? "Aluno";
   const profileData = quizProfile ? PROFILE_DATA[quizProfile] : null;
+  const hasReleases = pendingReleases.length > 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-surface">
@@ -60,7 +100,6 @@ export default function DashboardPage() {
       />
 
       <main className="flex flex-1 flex-col items-center gap-6 px-20 py-8">
-        {/* Saudação */}
         <div className="flex w-full flex-col items-center gap-2">
           <h1 className="text-2xl font-semibold text-text-primary font-(family-name:--font-poppins)]">
             Olá, {firstName}!
@@ -70,9 +109,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Cards */}
         <div className="flex w-full gap-6">
-          {/* Card — Perfil de aprendizagem */}
           <div className="flex flex-1 flex-col rounded-2xl border border-border-light bg-background shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
             <div className="flex flex-col gap-1 px-6 py-5">
               <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
@@ -110,17 +147,49 @@ export default function DashboardPage() {
                   aria-hidden="true"
                 />
               )}
-              <Button variant="primary" size="md" className="w-full" asChild>
-                <Link href="/quiz">
-                  {profileData
-                    ? "Refazer questionário"
-                    : "Começar questionário"}
-                </Link>
-              </Button>
+
+              {loadingReleases ? (
+                <div className="flex items-center gap-2 py-2">
+                  <Loader2
+                    size={16}
+                    className="animate-spin text-primary"
+                    aria-hidden="true"
+                  />
+                  <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+                    Verificando avaliações...
+                  </span>
+                </div>
+              ) : hasReleases ? (
+                <div className="flex w-full flex-col gap-2">
+                  {pendingReleases.map((release) => (
+                    <Button
+                      key={release.releaseId}
+                      variant="primary"
+                      size="md"
+                      className="w-full"
+                      onClick={() => handleStartAssessment(release)}
+                    >
+                      {pendingReleases.length === 1
+                        ? profileData
+                          ? "Refazer avaliação"
+                          : "Iniciar avaliação"
+                        : `Iniciar ${INSTRUMENT_LABELS[release.instrument] ?? release.instrument}`}
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="w-full opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  Nenhuma avaliação disponível
+                </Button>
+              )}
             </div>
           </div>
 
-          {/* Card — Atividades */}
           <div className="flex flex-1 flex-col rounded-2xl border border-border-light bg-background shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
             <div className="flex flex-col gap-1 px-6 py-5">
               <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">

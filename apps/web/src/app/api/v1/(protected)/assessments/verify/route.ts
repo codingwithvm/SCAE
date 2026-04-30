@@ -10,37 +10,40 @@ export const POST = withAuth(
     const requestBody = await request.json();
     const { instrument } = requestBody;
 
-    if (!instrument) {
-      return NextResponse.json(
-        { error: "instrument is required" },
-        { status: 400 },
-      );
-    }
-
-    if (!VALID_INSTRUMENTS.includes(instrument)) {
+    if (instrument && !VALID_INSTRUMENTS.includes(instrument)) {
       return NextResponse.json(
         { error: "Invalid instrument" },
         { status: 400 },
       );
     }
 
-    const activeRelease = await prisma.assessmentRelease.findFirst({
-      where: {
-        userId: decodedTokenPayload.userId,
-        instrument,
-        state: "PENDING",
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-      },
+    const whereClause: Record<string, unknown> = {
+      userId: decodedTokenPayload.userId,
+      state: "PENDING",
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    };
+
+    if (instrument) {
+      whereClause.instrument = instrument;
+    }
+
+    const activeReleases = await prisma.assessmentRelease.findMany({
+      where: whereClause,
+      orderBy: { createdAt: "asc" },
     });
 
-    if (!activeRelease) {
-      return NextResponse.json({ allowed: false });
+    if (activeReleases.length === 0) {
+      return NextResponse.json({ allowed: false, releases: [] });
     }
 
     return NextResponse.json({
       allowed: true,
-      releaseId: activeRelease.id,
-      instrument: activeRelease.instrument,
+      releases: activeReleases.map((r) => ({
+        releaseId: r.id,
+        instrument: r.instrument,
+      })),
+      releaseId: activeReleases[0].id,
+      instrument: activeReleases[0].instrument,
     });
   },
   { allowedRoles: [...ALLOWED_ROLES] },

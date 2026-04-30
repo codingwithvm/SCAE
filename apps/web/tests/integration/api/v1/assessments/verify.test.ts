@@ -4,6 +4,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     assessmentRelease: {
       findFirst: vi.fn(),
+      findMany: vi.fn(),
     },
   },
 }));
@@ -16,7 +17,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth/jwt";
 import { POST } from "@/app/api/v1/(protected)/assessments/verify/route";
 
-const mockedReleaseFindFirst = vi.mocked(prisma.assessmentRelease.findFirst);
+const mockedReleaseFindMany = vi.mocked(prisma.assessmentRelease.findMany);
 const mockedVerifyToken = vi.mocked(verifyToken);
 
 function createAuthenticatedRequest(
@@ -93,9 +94,9 @@ describe("POST /api/v1/assessments/verify", () => {
     vi.clearAllMocks();
   });
 
-  it("returns 200 with release data when student has active PENDING release", async () => {
+  it("returns allowed with release data when student has active PENDING release", async () => {
     mockedVerifyToken.mockReturnValueOnce(studentTokenPayload);
-    mockedReleaseFindFirst.mockResolvedValueOnce(existingRelease);
+    mockedReleaseFindMany.mockResolvedValueOnce([existingRelease]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
@@ -107,14 +108,15 @@ describe("POST /api/v1/assessments/verify", () => {
     const responseData = await verifyResponse.json();
 
     expect(verifyResponse.status).toBe(200);
+    expect(responseData.allowed).toBe(true);
     expect(responseData.releaseId).toBe(existingRelease.id);
     expect(responseData.instrument).toBe("MCEES_1A4");
-    expect(responseData.allowed).toBe(true);
+    expect(responseData.releases).toHaveLength(1);
   });
 
-  it("returns 200 with allowed false when no active release exists", async () => {
+  it("returns allowed false when no active release exists", async () => {
     mockedVerifyToken.mockReturnValueOnce(studentTokenPayload);
-    mockedReleaseFindFirst.mockResolvedValueOnce(null);
+    mockedReleaseFindMany.mockResolvedValueOnce([]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
@@ -127,11 +129,20 @@ describe("POST /api/v1/assessments/verify", () => {
 
     expect(verifyResponse.status).toBe(200);
     expect(responseData.allowed).toBe(false);
-    expect(responseData.releaseId).toBeUndefined();
+    expect(responseData.releases).toEqual([]);
   });
 
-  it("returns 400 when instrument is missing", async () => {
+  it("returns all pending releases when instrument is omitted", async () => {
     mockedVerifyToken.mockReturnValueOnce(studentTokenPayload);
+    const secondRelease = {
+      ...existingRelease,
+      id: "rel00000-0000-0000-0000-000000000002",
+      instrument: "MCEES_5A9" as const,
+    };
+    mockedReleaseFindMany.mockResolvedValueOnce([
+      existingRelease,
+      secondRelease,
+    ]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
@@ -142,8 +153,10 @@ describe("POST /api/v1/assessments/verify", () => {
     const verifyResponse = await POST(verifyRequest);
     const responseData = await verifyResponse.json();
 
-    expect(verifyResponse.status).toBe(400);
-    expect(responseData.error).toBeDefined();
+    expect(verifyResponse.status).toBe(200);
+    expect(responseData.allowed).toBe(true);
+    expect(responseData.releases).toHaveLength(2);
+    expect(responseData.releaseId).toBe(existingRelease.id);
   });
 
   it("returns 400 when instrument is invalid", async () => {
@@ -162,9 +175,9 @@ describe("POST /api/v1/assessments/verify", () => {
     expect(responseData.error).toBeDefined();
   });
 
-  it("filters out expired releases", async () => {
+  it("filters by instrument when provided", async () => {
     mockedVerifyToken.mockReturnValueOnce(studentTokenPayload);
-    mockedReleaseFindFirst.mockResolvedValueOnce(null);
+    mockedReleaseFindMany.mockResolvedValueOnce([]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
@@ -174,14 +187,31 @@ describe("POST /api/v1/assessments/verify", () => {
 
     await POST(verifyRequest);
 
-    expect(mockedReleaseFindFirst).toHaveBeenCalledWith({
-      where: {
+    expect(mockedReleaseFindMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({
         userId: studentTokenPayload.userId,
         instrument: "MCEES_1A4",
         state: "PENDING",
-        OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) } }],
-      },
+      }),
+      orderBy: { createdAt: "asc" },
     });
+  });
+
+  it("does not filter by instrument when omitted", async () => {
+    mockedVerifyToken.mockReturnValueOnce(studentTokenPayload);
+    mockedReleaseFindMany.mockResolvedValueOnce([]);
+
+    const verifyRequest = createAuthenticatedRequest(
+      "POST",
+      "http://localhost/api/v1/assessments/verify",
+      {},
+    );
+
+    await POST(verifyRequest);
+
+    const callArgs = mockedReleaseFindMany.mock.calls[0][0];
+    const whereClause = callArgs?.where as Record<string, unknown>;
+    expect(whereClause.instrument).toBeUndefined();
   });
 
   it("allows teachers to verify releases", async () => {
@@ -191,7 +221,7 @@ describe("POST /api/v1/assessments/verify", () => {
       userId: teacherTokenPayload.userId,
       instrument: "MCEES_PROF" as const,
     };
-    mockedReleaseFindFirst.mockResolvedValueOnce(teacherRelease);
+    mockedReleaseFindMany.mockResolvedValueOnce([teacherRelease]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
