@@ -29,10 +29,15 @@ model User {
   updatedAt          DateTime  @updatedAt
   deletedAt          DateTime?
 
-  school          School?       @relation(fields: [schoolId], references: [id])
-  municipality    Municipality? @relation(fields: [municipalityId], references: [id])
+  school          School?        @relation(fields: [schoolId], references: [id])
+  municipality    Municipality?  @relation(fields: [municipalityId], references: [id])
   taughtClasses   TeacherClass[]
   enrolledClasses StudentClass[]
+
+  releases        AssessmentRelease[] @relation("UserReleases")
+  releasesGranted AssessmentRelease[] @relation("ReleasedByUser")
+  assessments     Assessment[]
+  reportsSent     ReportDelivery[]    @relation("SentByUser")
 
   @@index([email])
   @@index([registrationNumber])
@@ -60,12 +65,12 @@ model Municipality {
 }
 
 model School {
-  id             String       @id @default(uuid())
+  id             String    @id @default(uuid())
   municipalityId String
   name           String
-  inepCode       String       @unique @map("inep_code")
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  inepCode       String    @unique @map("inep_code")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   deletedAt      DateTime?
 
   municipality Municipality @relation(fields: [municipalityId], references: [id])
@@ -87,9 +92,10 @@ model Class {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  school            School         @relation(fields: [schoolId], references: [id])
+  school             School              @relation(fields: [schoolId], references: [id])
   teacherAssignments TeacherClass[]
   studentEnrollments StudentClass[]
+  assessmentReleases AssessmentRelease[]
 
   @@index([schoolId])
   @@index([year])
@@ -119,4 +125,120 @@ model StudentClass {
   @@id([studentId, classId])
   @@index([classId])
   @@map("scae_student_classes")
+}
+
+enum Instrument {
+  MCEES_1A4
+  MCEES_5A9
+  MCEES_PROF
+  MEES_PROF
+}
+
+enum ReleaseState {
+  PENDING
+  IN_USE
+  CONSUMED
+  EXPIRED
+}
+
+enum AssessmentState {
+  STARTED
+  IN_PROGRESS
+  COMPLETE
+  ABANDONED
+}
+
+enum ConsistencyTier {
+  CONFIRMED
+  PREDOMINANT
+  IN_MAPPING
+}
+
+model AssessmentRelease {
+  id           String       @id @default(uuid())
+  userId       String
+  instrument   Instrument
+  releasedById String       @map("released_by_id")
+  classId      String?
+  state        ReleaseState @default(PENDING)
+  expiresAt    DateTime?    @map("expires_at")
+  consumedAt   DateTime?    @map("consumed_at")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user       User        @relation("UserReleases", fields: [userId], references: [id])
+  releasedBy User        @relation("ReleasedByUser", fields: [releasedById], references: [id])
+  class      Class?      @relation(fields: [classId], references: [id])
+  assessment Assessment?
+
+  @@unique([userId, instrument, state], name: "unique_active_release")
+  @@index([userId])
+  @@index([classId])
+  @@index([state])
+  @@map("scae_assessment_releases")
+}
+
+model Assessment {
+  id               String          @id @default(uuid())
+  userId           String
+  instrument       Instrument
+  releaseId        String?         @unique @map("release_id")
+  state            AssessmentState @default(STARTED)
+  responsesJson    Json?           @map("responses_json")
+  startedAt        DateTime        @default(now()) @map("started_at")
+  completedAt      DateTime?       @map("completed_at")
+  totalTimeSeconds Int?            @map("total_time_seconds")
+  ipAddress        String?         @map("ip_address") @db.VarChar(45)
+  userAgent        String?         @map("user_agent")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user    User               @relation(fields: [userId], references: [id])
+  release AssessmentRelease? @relation(fields: [releaseId], references: [id])
+  result  AssessmentResult?
+
+  @@index([userId])
+  @@index([instrument])
+  @@index([state])
+  @@map("scae_assessments")
+}
+
+model AssessmentResult {
+  id             String          @id @default(uuid())
+  assessmentId   String          @unique @map("assessment_id")
+  profile        String
+  quadrant       Int?
+  axisX          Decimal         @map("axis_x") @db.Decimal(8, 4)
+  axisY          Decimal         @map("axis_y") @db.Decimal(8, 4)
+  confX          Decimal?        @map("conf_x") @db.Decimal(5, 2)
+  confY          Decimal?        @map("conf_y") @db.Decimal(5, 2)
+  tier           ConsistencyTier
+  scoresJson     Json            @map("scores_json")
+  fullResultJson Json            @map("full_result_json")
+  engineVersion  String          @default("1.0.0") @map("engine_version") @db.VarChar(20)
+  createdAt      DateTime        @default(now())
+
+  assessment       Assessment       @relation(fields: [assessmentId], references: [id])
+  reportDeliveries ReportDelivery[]
+
+  @@map("scae_assessment_results")
+}
+
+model ReportDelivery {
+  id             String    @id @default(uuid())
+  resultId       String    @map("result_id")
+  sentById       String    @map("sent_by_id")
+  recipientEmail String    @map("recipient_email") @db.VarChar(255)
+  tokenHash      String    @unique @map("token_hash") @db.VarChar(64)
+  tokenExpiresAt DateTime  @map("token_expires_at")
+  deliveryState  String    @default("sent") @map("delivery_state") @db.VarChar(20)
+  openedAt       DateTime? @map("opened_at")
+  createdAt      DateTime  @default(now())
+
+  result AssessmentResult @relation(fields: [resultId], references: [id])
+  sentBy User             @relation("SentByUser", fields: [sentById], references: [id])
+
+  @@index([resultId])
+  @@index([tokenHash])
+  @@map("scae_report_deliveries")
 }
