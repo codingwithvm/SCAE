@@ -1,3 +1,5 @@
+import "server-only";
+
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth/jwt";
 import type { Role } from "@/generated/prisma/client";

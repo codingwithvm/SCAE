@@ -11,6 +11,12 @@ export default defineConfig({
     globals: true,
     clearMocks: true,
     restoreMocks: true,
+    alias: {
+      "server-only": path.resolve(
+        __dirname,
+        "./tests/__mocks__/server-only.ts",
+      ),
+    },
   },
   resolve: {
     alias: {
