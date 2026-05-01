@@ -4,17 +4,12 @@ import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowRight,
-  LogOut,
-  Loader2,
-  CheckCircle,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, LogOut, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { RankingBlock } from "@/components/assessment/RankingBlock";
 import { PairChoice } from "@/components/assessment/PairChoice";
 import { ExtraQuestion } from "@/components/assessment/ExtraQuestion";
+import { InlineStudentReport } from "@/components/assessment/InlineStudentReport";
 import {
   calculateScoresClient,
   determineProfileClient,
@@ -115,6 +110,11 @@ function AssessmentFlow({
   const [extraAxis, setExtraAxis] = useState<Axis | null>(null);
   const [extraIndex, setExtraIndex] = useState(0);
   const [extraAdj, setExtraAdj] = useState({ X: 0, Y: 0 });
+
+  const [resultProfile, setResultProfile] = useState<string | null>(null);
+  const [resultAssessmentId, setResultAssessmentId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -376,6 +376,8 @@ function AssessmentFlow({
       }
 
       sessionStorage.removeItem(STORAGE_KEY);
+      setResultProfile(profile);
+      setResultAssessmentId(assessment.id);
       setScreen("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao finalizar");
@@ -419,22 +421,11 @@ function AssessmentFlow({
 
   if (screen === "done") {
     return (
-      <div className="flex flex-col min-h-screen bg-surface items-center justify-center gap-6">
-        <CheckCircle className="h-16 w-16 text-success" />
-        <h1 className="text-2xl font-semibold text-text-primary font-(family-name:--font-poppins)]">
-          Avaliação concluída!
-        </h1>
-        <p className="text-text-secondary font-(family-name:--font-inter)]">
-          Seu resultado foi salvo com sucesso.
-        </p>
-        <Button
-          variant="primary"
-          size="md"
-          onClick={() => router.push("/dashboard")}
-        >
-          Voltar ao início
-        </Button>
-      </div>
+      <InlineStudentReport
+        assessmentId={resultAssessmentId}
+        profile={resultProfile}
+        onBack={() => router.push("/dashboard")}
+      />
     );
   }
 

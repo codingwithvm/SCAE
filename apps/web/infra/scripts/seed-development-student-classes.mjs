@@ -14,6 +14,11 @@ const developmentStudentClasses = [
     className: "1º Ano A",
     classYear: 2026,
   },
+  {
+    registrationNumber: "2026002",
+    className: "5º Ano A",
+    classYear: 2026,
+  },
 ];
 
 seedDevelopmentStudentClasses();

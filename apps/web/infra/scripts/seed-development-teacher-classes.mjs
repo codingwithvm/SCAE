@@ -11,6 +11,11 @@ const databaseClient = new Client({
 const developmentTeacherClasses = [
   {
     teacherEmail: "professor@scae.dev",
+    className: "1º Ano A",
+    classYear: 2026,
+  },
+  {
+    teacherEmail: "professor@scae.dev",
     className: "5º Ano A",
     classYear: 2026,
   },

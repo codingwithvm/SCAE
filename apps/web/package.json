@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "db:seed": "node infra/scripts/seed-all.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",

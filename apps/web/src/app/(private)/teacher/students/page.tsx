@@ -38,7 +38,7 @@ const PROFILE_COLORS: Record<string, { bg: string; text: string }> = {
   Equilibrado: { bg: "#F7FAFC", text: "#2D3748" },
 };
 
-export default function SchoolStudentsPage() {
+export default function TeacherStudentsPage() {
   const router = useRouter();
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>("");

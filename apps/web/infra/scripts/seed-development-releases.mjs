@@ -18,6 +18,14 @@ const developmentReleases = [
     grantedByEmail: "gestor.escola@scae.dev",
   },
   {
+    userEmail: null,
+    userRegistrationNumber: "2026002",
+    instrument: "MCEES_5A9",
+    className: "5º Ano A",
+    classYear: 2026,
+    grantedByEmail: "gestor.escola@scae.dev",
+  },
+  {
     userEmail: "professor@scae.dev",
     userRegistrationNumber: null,
     instrument: "MCEES_PROF",
@@ -63,8 +71,8 @@ async function insertDevelopmentRelease(release) {
         SELECT
           gen_random_uuid(),
           target_user.id,
-          $1,
-          'PENDING',
+          $1::"Instrument",
+          'PENDING'::"ReleaseState",
           class_ref.id,
           grantor.id,
           NOW() + INTERVAL '90 days',
