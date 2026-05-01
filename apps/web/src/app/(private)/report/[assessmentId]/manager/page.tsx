@@ -4,12 +4,7 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Printer,
-  ShieldAlert,
-  BarChart3,
-} from "lucide-react";
+import { ArrowLeft, Printer, ShieldAlert, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface TierInfo {
@@ -39,13 +34,24 @@ interface ReportData {
   dimensions?: Record<string, number>;
 }
 
-function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
+function StatCard({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color?: string;
+}) {
   return (
     <div className="flex flex-col items-center gap-1.5 rounded-[10px] bg-[#F5F7FA] border-[1.5px] border-[#E2E8F0] p-3 text-center">
       <span className="text-[11px] font-bold text-[#7A7A7A] uppercase tracking-wide leading-tight">
         {label}
       </span>
-      <span className="text-2xl font-black" style={{ color: color || "#2D2D2D" }}>
+      <span
+        className="text-2xl font-black"
+        style={{ color: color || "#2D2D2D" }}
+      >
         {value}
       </span>
     </div>
@@ -110,8 +116,14 @@ export default function ManagerReportPage({
   if (error || !data) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#F5F7FA] px-8">
-        <p className="text-[#7A7A7A] text-center">{error || "Relatório não encontrado"}</p>
-        <Button variant="outline" size="sm" onClick={() => router.push(backUrl)}>
+        <p className="text-[#7A7A7A] text-center">
+          {error || "Relatório não encontrado"}
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push(backUrl)}
+        >
           Voltar
         </Button>
       </div>
@@ -120,7 +132,9 @@ export default function ManagerReportPage({
 
   const { tierInfo, axes, dimensions, profileData } = data;
   const isTeacherInst = data.isTeacherInstrument;
-  const profileLabel = isTeacherInst ? "Perfil de Ensino" : "Perfil de Aprendizagem";
+  const profileLabel = isTeacherInst
+    ? "Perfil de Ensino"
+    : "Perfil de Aprendizagem";
 
   const instrumentLabels: Record<string, string> = {
     MCEES_1A4: "MCEES 1º ao 4º ano",
@@ -158,12 +172,13 @@ export default function ManagerReportPage({
       </header>
 
       <main className="flex flex-col gap-6 w-full max-w-[800px] mx-auto py-12 px-8">
-
         {/* Warning */}
         <div className="flex items-start gap-2 rounded-lg bg-[#FFFBEB] border-[1.5px] border-[#FCD34D] px-3.5 py-2.5">
           <ShieldAlert size={16} className="text-[#78350F] mt-0.5 shrink-0" />
           <p className="text-[13px] text-[#78350F] font-(family-name:--font-inter)]">
-            Área exclusiva do Gestor Acadêmico. Estes dados internos <strong>não são exibidos</strong> ao respondente, ao aluno nem aos pais/responsáveis.
+            Área exclusiva do Gestor Acadêmico. Estes dados internos{" "}
+            <strong>não são exibidos</strong> ao respondente, ao aluno nem aos
+            pais/responsáveis.
           </p>
         </div>
 
@@ -225,25 +240,40 @@ export default function ManagerReportPage({
             />
             <StatCard
               label="Eixo Processamento (X)"
-              value={`${axes?.x ?? 0 > 0 ? "+" : ""}${axes?.x ?? 0}`}
+              value={`${(axes?.x ?? 0 > 0) ? "+" : ""}${axes?.x ?? 0}`}
             />
             <StatCard
               label="Eixo Percepção (Y)"
-              value={`${axes?.y ?? 0 > 0 ? "+" : ""}${axes?.y ?? 0}`}
+              value={`${(axes?.y ?? 0 > 0) ? "+" : ""}${axes?.y ?? 0}`}
             />
           </div>
 
           <div className="text-xs text-[#7A7A7A] px-3 py-2 bg-[#F5F7FA] rounded-md">
-            Quadrante: <strong>{axes ? `${axes.x >= 0 ? "Experimentação" : "Reflexão"} + ${axes.y >= 0 ? "Conceituação" : "Vivência"}` : "—"}</strong>
-            {" · "}Instrumento: <code className="bg-[#F1F5F9] px-1 py-0.5 rounded text-[11px]">{data.instrument}</code>
+            Quadrante:{" "}
+            <strong>
+              {axes
+                ? `${axes.x >= 0 ? "Experimentação" : "Reflexão"} + ${axes.y >= 0 ? "Conceituação" : "Vivência"}`
+                : "—"}
+            </strong>
+            {" · "}Instrumento:{" "}
+            <code className="bg-[#F1F5F9] px-1 py-0.5 rounded text-[11px]">
+              {data.instrument}
+            </code>
           </div>
 
           {dimensions && Object.keys(dimensions).length > 0 && (
             <div className="grid grid-cols-4 gap-2">
               {Object.entries(dimensions).map(([key, val]) => (
-                <div key={key} className="flex flex-col items-center rounded-lg bg-[#F5F7FA] border border-[#E2E8F0] p-2 text-center">
-                  <span className="text-[11px] font-bold text-[#7A7A7A]">{key}</span>
-                  <span className="text-lg font-extrabold text-[#2D2D2D]">{val}</span>
+                <div
+                  key={key}
+                  className="flex flex-col items-center rounded-lg bg-[#F5F7FA] border border-[#E2E8F0] p-2 text-center"
+                >
+                  <span className="text-[11px] font-bold text-[#7A7A7A]">
+                    {key}
+                  </span>
+                  <span className="text-lg font-extrabold text-[#2D2D2D]">
+                    {val}
+                  </span>
                 </div>
               ))}
             </div>
@@ -251,8 +281,12 @@ export default function ManagerReportPage({
         </div>
 
         <div className="text-[13px] text-[#7A7A7A] text-center py-4">
-          Concluído em: {data.completedAt ? new Date(data.completedAt).toLocaleString("pt-BR") : "—"}
-          {" · "}Instrumento: {instrumentLabels[data.instrument] || data.instrument}
+          Concluído em:{" "}
+          {data.completedAt
+            ? new Date(data.completedAt).toLocaleString("pt-BR")
+            : "—"}
+          {" · "}Instrumento:{" "}
+          {instrumentLabels[data.instrument] || data.instrument}
         </div>
       </main>
     </div>

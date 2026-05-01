@@ -4,12 +4,7 @@ import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowRight,
-  LogOut,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, LogOut, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { RankingBlock } from "@/components/assessment/RankingBlock";
 import { PairChoice } from "@/components/assessment/PairChoice";

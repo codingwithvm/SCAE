@@ -30,8 +30,12 @@ for (const script of scripts) {
 
 console.log("=== Seed complete ===");
 console.log("\nCredentials:");
-console.log('  STUDENT (1a4):     matrícula "2026001" + nascimento "2015-03-10"');
-console.log('  STUDENT (5a9):     matrícula "2026002" + nascimento "2012-07-22"');
+console.log(
+  '  STUDENT (1a4):     matrícula "2026001" + nascimento "2015-03-10"',
+);
+console.log(
+  '  STUDENT (5a9):     matrícula "2026002" + nascimento "2012-07-22"',
+);
 console.log('  TEACHER:           "professor@scae.dev" + "password"');
 console.log('  SCHOOL_MANAGER:    "gestor.escola@scae.dev" + "password"');
 console.log('  MUNICIPAL_MANAGER: "gestor.municipal@scae.dev" + "password"');

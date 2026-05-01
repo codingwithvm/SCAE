@@ -39,7 +39,10 @@ interface ReportData {
   ludic: { emoji: string | null; tag: string | null };
 }
 
-const LEVEL_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+const LEVEL_ICONS: Record<
+  string,
+  React.ComponentType<{ size?: number; className?: string }>
+> = {
   "gs-strong": Sparkle,
   "gs-mid": ThumbsUp,
   "gs-weak": BicepsFlexed,
@@ -130,9 +133,13 @@ export default function StudentReportPage({
             <Bell size={18} className="text-text-secondary" />
           </div>
           <div className="flex items-center justify-center h-9 w-9 rounded-full bg-primary">
-            <span className="text-sm font-semibold text-white font-(family-name:--font-poppins)]">A</span>
+            <span className="text-sm font-semibold text-white font-(family-name:--font-poppins)]">
+              A
+            </span>
           </div>
-          <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">Aluno</span>
+          <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
+            Aluno
+          </span>
           <ChevronDown size={16} className="text-text-secondary" />
         </div>
       </header>

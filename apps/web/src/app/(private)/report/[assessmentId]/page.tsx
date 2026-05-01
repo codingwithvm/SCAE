@@ -75,31 +75,79 @@ interface ReportData {
   respondentClass?: string;
 }
 
-const LEVEL_STYLES: Record<string, { bg: string; border: string; text: string; stars: string; starsColor: string }> = {
-  "gs-strong": { bg: "#F0FDF4", border: "#059669", text: "#059669", stars: "★★★", starsColor: "#059669" },
-  "gs-mid":    { bg: "#EFF6FF", border: "#93C5FD", text: "#2563EB", stars: "★★",  starsColor: "#2563EB" },
-  "gs-weak":   { bg: "#FFF5F5", border: "#FCA5A5", text: "#DC2626", stars: "★",   starsColor: "#EF4444" },
+const LEVEL_STYLES: Record<
+  string,
+  {
+    bg: string;
+    border: string;
+    text: string;
+    stars: string;
+    starsColor: string;
+  }
+> = {
+  "gs-strong": {
+    bg: "#F0FDF4",
+    border: "#059669",
+    text: "#059669",
+    stars: "★★★",
+    starsColor: "#059669",
+  },
+  "gs-mid": {
+    bg: "#EFF6FF",
+    border: "#93C5FD",
+    text: "#2563EB",
+    stars: "★★",
+    starsColor: "#2563EB",
+  },
+  "gs-weak": {
+    bg: "#FFF5F5",
+    border: "#FCA5A5",
+    text: "#DC2626",
+    stars: "★",
+    starsColor: "#EF4444",
+  },
 };
 
-function ConsistencyBar({ label, value }: { label: string; value: number | null }) {
+function ConsistencyBar({
+  label,
+  value,
+}: {
+  label: string;
+  value: number | null;
+}) {
   if (value === null) return null;
   const clamped = Math.min(100, Math.max(0, value));
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[11px] font-normal" style={{ color: "rgba(255,255,255,0.67)" }}>
+      <span
+        className="text-[11px] font-normal"
+        style={{ color: "rgba(255,255,255,0.67)" }}
+      >
         {label}
       </span>
-      <div className="h-2 w-full rounded-[4px] overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+      <div
+        className="h-2 w-full rounded-[4px] overflow-hidden"
+        style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+      >
         <div
           className="h-full rounded-[4px] transition-all duration-500"
-          style={{ width: `${clamped}%`, backgroundColor: "rgba(255,255,255,0.85)" }}
+          style={{
+            width: `${clamped}%`,
+            backgroundColor: "rgba(255,255,255,0.85)",
+          }}
         />
       </div>
     </div>
   );
 }
 
-function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
+function SectionHeader({
+  icon,
+  title,
+}: {
+  icon: React.ReactNode;
+  title: string;
+}) {
   return (
     <div className="flex items-center gap-2.5 w-full pb-2 border-b-[1.5px] border-[#E2E8F0]">
       {icon}
@@ -110,7 +158,13 @@ function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }
   );
 }
 
-function SectionIcon({ bg, children }: { bg: string; children: React.ReactNode }) {
+function SectionIcon({
+  bg,
+  children,
+}: {
+  bg: string;
+  children: React.ReactNode;
+}) {
   return (
     <div
       className="flex items-center justify-center w-[34px] h-[34px] rounded-lg shrink-0"
@@ -121,7 +175,13 @@ function SectionIcon({ bg, children }: { bg: string; children: React.ReactNode }
   );
 }
 
-function ListItem({ text, borderColor }: { text: string; borderColor: string }) {
+function ListItem({
+  text,
+  borderColor,
+}: {
+  text: string;
+  borderColor: string;
+}) {
   return (
     <div
       className="rounded-lg px-3.5 py-2.5"
@@ -190,7 +250,9 @@ export default function ReportPage({
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#F5F7FA] px-8">
         <Target size={48} className="text-[#ECC94B]" />
-        <p className="text-[#7A7A7A] text-center">{error || "Relatório não encontrado"}</p>
+        <p className="text-[#7A7A7A] text-center">
+          {error || "Relatório não encontrado"}
+        </p>
         <button
           onClick={() => router.push(backUrl)}
           className="px-6 py-3 rounded-full bg-[#1E4FAE] text-white font-semibold text-sm cursor-pointer"
@@ -201,8 +263,17 @@ export default function ReportPage({
     );
   }
 
-  const { profileData, tierInfo, gscae, axes, isTeacherInstrument, compatibility } = data;
-  const profileLabel = isTeacherInstrument ? "PERFIL DE ENSINO" : "PERFIL DE APRENDIZAGEM";
+  const {
+    profileData,
+    tierInfo,
+    gscae,
+    axes,
+    isTeacherInstrument,
+    compatibility,
+  } = data;
+  const profileLabel = isTeacherInstrument
+    ? "PERFIL DE ENSINO"
+    : "PERFIL DE APRENDIZAGEM";
   const confTier = tierInfo.label;
   const completedDate = data.completedAt
     ? new Date(data.completedAt).toLocaleDateString("pt-BR")
@@ -235,7 +306,6 @@ export default function ReportPage({
 
       {/* ── Main content ── */}
       <main className="flex flex-col gap-6 w-full max-w-[800px] mx-auto py-12 px-8">
-
         {/* ── Profile Hero ── */}
         <div
           className="flex flex-col gap-2.5 rounded-xl p-7 w-full"
@@ -243,8 +313,14 @@ export default function ReportPage({
             background: `linear-gradient(135deg, ${profileData.cor} 0%, ${profileData.cor}CC 100%)`,
           }}
         >
-          <div className="flex items-center rounded-md px-3 py-1 w-fit" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
-            <span className="text-xs font-bold tracking-wide" style={{ color: "rgba(255,255,255,0.87)" }}>
+          <div
+            className="flex items-center rounded-md px-3 py-1 w-fit"
+            style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+          >
+            <span
+              className="text-xs font-bold tracking-wide"
+              style={{ color: "rgba(255,255,255,0.87)" }}
+            >
               {profileLabel}
             </span>
           </div>
@@ -258,12 +334,18 @@ export default function ReportPage({
           {axes && (
             <div className="flex flex-col gap-2 w-full mt-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-normal tracking-wide" style={{ color: "rgba(255,255,255,0.7)" }}>
+                <span
+                  className="text-xs font-normal tracking-wide"
+                  style={{ color: "rgba(255,255,255,0.7)" }}
+                >
                   CONSISTÊNCIA DO PERFIL
                 </span>
                 <span
                   className="text-xs font-bold px-2.5 py-0.5 rounded-full"
-                  style={{ backgroundColor: "rgba(255,255,255,0.18)", color: "#fff" }}
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.18)",
+                    color: "#fff",
+                  }}
                 >
                   {confTier}
                 </span>
@@ -282,31 +364,40 @@ export default function ReportPage({
           {data.respondentSchool && (
             <>
               <span className="text-[13px] text-[#A0AEC0]">·</span>
-              <span className="text-[13px] text-[#7A7A7A] font-(family-name:--font-inter)]">{data.respondentSchool}</span>
+              <span className="text-[13px] text-[#7A7A7A] font-(family-name:--font-inter)]">
+                {data.respondentSchool}
+              </span>
             </>
           )}
           {data.respondentClass && (
             <>
               <span className="text-[13px] text-[#A0AEC0]">·</span>
-              <span className="text-[13px] text-[#7A7A7A] font-(family-name:--font-inter)]">{data.respondentClass}</span>
+              <span className="text-[13px] text-[#7A7A7A] font-(family-name:--font-inter)]">
+                {data.respondentClass}
+              </span>
             </>
           )}
           {completedDate && (
             <>
               <span className="text-[13px] text-[#A0AEC0]">·</span>
-              <span className="text-[13px] text-[#7A7A7A] font-(family-name:--font-inter)]">Avaliado em {completedDate}</span>
+              <span className="text-[13px] text-[#7A7A7A] font-(family-name:--font-inter)]">
+                Avaliado em {completedDate}
+              </span>
             </>
           )}
         </div>
 
         {/* ── Main report card ── */}
         <div className="flex flex-col gap-6 p-6 rounded-xl bg-white border border-[#EDF2F7] shadow-[0_2px_12px_rgba(30,79,174,0.08)]">
-
           {/* Mapa de Perfil */}
           {axes && (
             <div className="flex flex-col items-center gap-3 w-full">
               <SectionHeader
-                icon={<SectionIcon bg="#05966920"><Rocket size={18} className="text-[#059669]" /></SectionIcon>}
+                icon={
+                  <SectionIcon bg="#05966920">
+                    <Rocket size={18} className="text-[#059669]" />
+                  </SectionIcon>
+                }
                 title="Mapa de Perfil SCAE"
               />
               <MapaSVG
@@ -321,7 +412,11 @@ export default function ReportPage({
           {/* Pontos Fortes */}
           <div className="flex flex-col gap-3 w-full">
             <SectionHeader
-              icon={<SectionIcon bg="#FEF3C720"><Star size={18} className="text-[#D97706]" /></SectionIcon>}
+              icon={
+                <SectionIcon bg="#FEF3C720">
+                  <Star size={18} className="text-[#D97706]" />
+                </SectionIcon>
+              }
               title="Pontos Fortes"
             />
             <div className="flex flex-col gap-2">
@@ -334,7 +429,11 @@ export default function ReportPage({
           {/* Pontos de Atenção */}
           <div className="flex flex-col gap-3 w-full">
             <SectionHeader
-              icon={<SectionIcon bg="#FEE2E2"><Target size={18} className="text-[#DC2626]" /></SectionIcon>}
+              icon={
+                <SectionIcon bg="#FEE2E2">
+                  <Target size={18} className="text-[#DC2626]" />
+                </SectionIcon>
+              }
               title="Pontos de Atenção"
             />
             <div className="flex flex-col gap-2">
@@ -348,7 +447,11 @@ export default function ReportPage({
           {profileData.estrategias && profileData.estrategias.length > 0 && (
             <div className="flex flex-col gap-3 w-full">
               <SectionHeader
-                icon={<SectionIcon bg="#F0FDF4"><Lightbulb size={18} className="text-[#059669]" /></SectionIcon>}
+                icon={
+                  <SectionIcon bg="#F0FDF4">
+                    <Lightbulb size={18} className="text-[#059669]" />
+                  </SectionIcon>
+                }
                 title="Estratégias de Aprendizagem"
               />
               <div className="flex flex-col gap-2">
@@ -360,71 +463,103 @@ export default function ReportPage({
           )}
 
           {/* Para 1º ao 4º ano (teacher) */}
-          {isTeacherInstrument && profileData.para1a4 && profileData.para1a4.length > 0 && (
-            <div className="flex flex-col gap-3 w-full">
-              <SectionHeader
-                icon={<SectionIcon bg="#F0FDF4"><Lightbulb size={18} className="text-[#059669]" /></SectionIcon>}
-                title="Estratégias para o 1º ao 4º ano"
-              />
-              <div className="flex flex-col gap-2">
-                {profileData.para1a4.map((item, i) => (
-                  <ListItem key={i} text={item} borderColor="#059669" />
-                ))}
+          {isTeacherInstrument &&
+            profileData.para1a4 &&
+            profileData.para1a4.length > 0 && (
+              <div className="flex flex-col gap-3 w-full">
+                <SectionHeader
+                  icon={
+                    <SectionIcon bg="#F0FDF4">
+                      <Lightbulb size={18} className="text-[#059669]" />
+                    </SectionIcon>
+                  }
+                  title="Estratégias para o 1º ao 4º ano"
+                />
+                <div className="flex flex-col gap-2">
+                  {profileData.para1a4.map((item, i) => (
+                    <ListItem key={i} text={item} borderColor="#059669" />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Para 5º ao 9º ano (teacher) */}
-          {isTeacherInstrument && profileData.para5a9 && profileData.para5a9.length > 0 && (
-            <div className="flex flex-col gap-3 w-full">
-              <SectionHeader
-                icon={<SectionIcon bg="#F0FDF4"><Lightbulb size={18} className="text-[#059669]" /></SectionIcon>}
-                title="Estratégias para o 5º ao 9º ano"
-              />
-              <div className="flex flex-col gap-2">
-                {profileData.para5a9.map((item, i) => (
-                  <ListItem key={i} text={item} borderColor="#059669" />
-                ))}
+          {isTeacherInstrument &&
+            profileData.para5a9 &&
+            profileData.para5a9.length > 0 && (
+              <div className="flex flex-col gap-3 w-full">
+                <SectionHeader
+                  icon={
+                    <SectionIcon bg="#F0FDF4">
+                      <Lightbulb size={18} className="text-[#059669]" />
+                    </SectionIcon>
+                  }
+                  title="Estratégias para o 5º ao 9º ano"
+                />
+                <div className="flex flex-col gap-2">
+                  {profileData.para5a9.map((item, i) => (
+                    <ListItem key={i} text={item} borderColor="#059669" />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Desenvolvimento Profissional (teacher) */}
-          {isTeacherInstrument && profileData.desenvolvimento && profileData.desenvolvimento.length > 0 && (
-            <div className="flex flex-col gap-3 w-full">
-              <SectionHeader
-                icon={<SectionIcon bg="#F5F3FF"><Star size={18} className="text-[#7C3AED]" /></SectionIcon>}
-                title="Desenvolvimento Profissional"
-              />
-              <div className="flex flex-col gap-2">
-                {profileData.desenvolvimento.map((item, i) => (
-                  <ListItem key={i} text={item} borderColor="#7C3AED" />
-                ))}
+          {isTeacherInstrument &&
+            profileData.desenvolvimento &&
+            profileData.desenvolvimento.length > 0 && (
+              <div className="flex flex-col gap-3 w-full">
+                <SectionHeader
+                  icon={
+                    <SectionIcon bg="#F5F3FF">
+                      <Star size={18} className="text-[#7C3AED]" />
+                    </SectionIcon>
+                  }
+                  title="Desenvolvimento Profissional"
+                />
+                <div className="flex flex-col gap-2">
+                  {profileData.desenvolvimento.map((item, i) => (
+                    <ListItem key={i} text={item} borderColor="#7C3AED" />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Orientações para Pais/Responsáveis */}
-          {!isTeacherInstrument && profileData.responsaveis && profileData.responsaveis.length > 0 && (
-            <div className="flex flex-col gap-3 w-full">
-              <SectionHeader
-                icon={<SectionIcon bg="#FFF7ED"><Users size={18} className="text-[#D97706]" /></SectionIcon>}
-                title="Orientações SCAE para Pais e Responsáveis"
-              />
-              <div className="flex flex-col gap-2">
-                {profileData.responsaveis.map((item, i) => (
-                  <ListItem key={i} text={item} borderColor="#D97706" />
-                ))}
+          {!isTeacherInstrument &&
+            profileData.responsaveis &&
+            profileData.responsaveis.length > 0 && (
+              <div className="flex flex-col gap-3 w-full">
+                <SectionHeader
+                  icon={
+                    <SectionIcon bg="#FFF7ED">
+                      <Users size={18} className="text-[#D97706]" />
+                    </SectionIcon>
+                  }
+                  title="Orientações SCAE para Pais e Responsáveis"
+                />
+                <div className="flex flex-col gap-2">
+                  {profileData.responsaveis.map((item, i) => (
+                    <ListItem key={i} text={item} borderColor="#D97706" />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Ciclo G-SCAE */}
           {gscae && (
             <div className="flex flex-col gap-3 w-full">
               <SectionHeader
-                icon={<SectionIcon bg="#EFF6FF"><Rocket size={18} className="text-[#2563EB]" /></SectionIcon>}
-                title={isTeacherInstrument ? "Seu Perfil no Ciclo G-SCAE" : "Você no Ciclo G-SCAE"}
+                icon={
+                  <SectionIcon bg="#EFF6FF">
+                    <Rocket size={18} className="text-[#2563EB]" />
+                  </SectionIcon>
+                }
+                title={
+                  isTeacherInstrument
+                    ? "Seu Perfil no Ciclo G-SCAE"
+                    : "Você no Ciclo G-SCAE"
+                }
               />
               <p className="text-[13px] text-[#7A7A7A] font-(family-name:--font-inter)] leading-[1.45]">
                 O G-SCAE organiza a aprendizagem em 4 estágios.
@@ -434,7 +569,8 @@ export default function ReportPage({
               </p>
               <div className="grid grid-cols-4 gap-2.5">
                 {gscae.map((stage) => {
-                  const style = LEVEL_STYLES[stage.level] || LEVEL_STYLES["gs-mid"];
+                  const style =
+                    LEVEL_STYLES[stage.level] || LEVEL_STYLES["gs-mid"];
                   return (
                     <div
                       key={stage.name}
@@ -450,7 +586,10 @@ export default function ReportPage({
                       >
                         {stage.name}
                       </span>
-                      <span className="text-[18px]" style={{ color: style.starsColor }}>
+                      <span
+                        className="text-[18px]"
+                        style={{ color: style.starsColor }}
+                      >
                         {style.stars}
                       </span>
                       <span className="text-[11px] text-[#7A7A7A] font-(family-name:--font-inter)] leading-[1.45]">
@@ -467,11 +606,17 @@ export default function ReportPage({
           {compatibility && compatibility.length > 0 && (
             <div className="flex flex-col gap-3 w-full">
               <SectionHeader
-                icon={<SectionIcon bg="#F5F3FF"><Users size={18} className="text-[#7C3AED]" /></SectionIcon>}
+                icon={
+                  <SectionIcon bg="#F5F3FF">
+                    <Users size={18} className="text-[#7C3AED]" />
+                  </SectionIcon>
+                }
                 title="Como Adaptar ao Perfil do Aluno"
               />
               <p className="text-[13px] text-[#7A7A7A] font-(family-name:--font-inter)] leading-[1.45]">
-                Entender como o seu estilo de ensino se relaciona com cada perfil de aprendizagem é o passo mais concreto rumo a uma prática pedagógica verdadeiramente eficaz.
+                Entender como o seu estilo de ensino se relaciona com cada
+                perfil de aprendizagem é o passo mais concreto rumo a uma
+                prática pedagógica verdadeiramente eficaz.
               </p>
               <div className="flex flex-col gap-2.5">
                 {compatibility.map((entry) => (
@@ -502,7 +647,9 @@ export default function ReportPage({
         {/* ── G-SCAE Next Step box ── */}
         <div
           className="flex flex-col gap-2.5 rounded-xl p-[22px]"
-          style={{ background: "linear-gradient(135deg, #0047AB 0%, #0369A1 100%)" }}
+          style={{
+            background: "linear-gradient(135deg, #0047AB 0%, #0369A1 100%)",
+          }}
         >
           <div className="flex items-center gap-2.5">
             <Rocket size={20} className="text-white" />
@@ -516,7 +663,10 @@ export default function ReportPage({
           <div className="flex items-center gap-1.5">
             {["Percebe", "Entende", "Aplica", "Resolve"].map((stage, i) => (
               <span key={stage} className="contents">
-                <span className="px-3 py-[5px] rounded-full text-[13px] font-semibold text-white" style={{ backgroundColor: "rgba(255,255,255,0.18)" }}>
+                <span
+                  className="px-3 py-[5px] rounded-full text-[13px] font-semibold text-white"
+                  style={{ backgroundColor: "rgba(255,255,255,0.18)" }}
+                >
                   {stage}
                 </span>
                 {i < 3 && <ArrowRight size={14} className="text-white/50" />}
@@ -540,7 +690,17 @@ export default function ReportPage({
   );
 }
 
-function MapaSVG({ x, y, maxR, isMEES }: { x: number; y: number; maxR: number; isMEES: boolean }) {
+function MapaSVG({
+  x,
+  y,
+  maxR,
+  isMEES,
+}: {
+  x: number;
+  y: number;
+  maxR: number;
+  isMEES: boolean;
+}) {
   const cx = 150;
   const cy = 150;
   const ax = 110;
@@ -553,22 +713,112 @@ function MapaSVG({ x, y, maxR, isMEES }: { x: number; y: number; maxR: number; i
 
   return (
     <svg viewBox="0 0 300 300" className="w-full max-w-[280px]">
-      <rect x="150" y="40" width="108" height="108" rx="6" fill="#EFF6FF" opacity=".7" />
-      <rect x="42" y="40" width="108" height="108" rx="6" fill="#F0FDF4" opacity=".7" />
-      <rect x="42" y="152" width="108" height="108" rx="6" fill="#FFF7ED" opacity=".7" />
-      <rect x="150" y="152" width="108" height="108" rx="6" fill="#F5F3FF" opacity=".7" />
-      <line x1="42" y1="150" x2="258" y2="150" stroke="#CBD5E1" strokeWidth="1.5" />
-      <line x1="150" y1="40" x2="150" y2="260" stroke="#CBD5E1" strokeWidth="1.5" />
+      <rect
+        x="150"
+        y="40"
+        width="108"
+        height="108"
+        rx="6"
+        fill="#EFF6FF"
+        opacity=".7"
+      />
+      <rect
+        x="42"
+        y="40"
+        width="108"
+        height="108"
+        rx="6"
+        fill="#F0FDF4"
+        opacity=".7"
+      />
+      <rect
+        x="42"
+        y="152"
+        width="108"
+        height="108"
+        rx="6"
+        fill="#FFF7ED"
+        opacity=".7"
+      />
+      <rect
+        x="150"
+        y="152"
+        width="108"
+        height="108"
+        rx="6"
+        fill="#F5F3FF"
+        opacity=".7"
+      />
+      <line
+        x1="42"
+        y1="150"
+        x2="258"
+        y2="150"
+        stroke="#CBD5E1"
+        strokeWidth="1.5"
+      />
+      <line
+        x1="150"
+        y1="40"
+        x2="150"
+        y2="260"
+        stroke="#CBD5E1"
+        strokeWidth="1.5"
+      />
       <polygon points="258,150 252,145 252,155" fill="#CBD5E1" />
       <polygon points="150,40 145,46 155,46" fill="#CBD5E1" />
-      <text x="204" y="80" textAnchor="middle" fontSize="11" fontWeight="600" fill="#1D4ED8">{q1}</text>
-      <text x="96" y="80" textAnchor="middle" fontSize="11" fontWeight="600" fill="#166534">{q2}</text>
-      <text x="96" y="222" textAnchor="middle" fontSize="11" fontWeight="600" fill="#92400E">{q3}</text>
-      <text x="204" y="222" textAnchor="middle" fontSize="11" fontWeight="600" fill="#5B21B6">{q4}</text>
-      <text x="204" y="145" fontSize="9" fill="#64748B" textAnchor="middle">Experimentação</text>
-      <text x="96" y="145" fontSize="9" fill="#64748B" textAnchor="middle">Reflexão</text>
-      <text x="150" y="32" fontSize="9" fill="#64748B" textAnchor="middle">Conceituação</text>
-      <text x="150" y="275" fontSize="9" fill="#64748B" textAnchor="middle">Vivência</text>
+      <text
+        x="204"
+        y="80"
+        textAnchor="middle"
+        fontSize="11"
+        fontWeight="600"
+        fill="#1D4ED8"
+      >
+        {q1}
+      </text>
+      <text
+        x="96"
+        y="80"
+        textAnchor="middle"
+        fontSize="11"
+        fontWeight="600"
+        fill="#166534"
+      >
+        {q2}
+      </text>
+      <text
+        x="96"
+        y="222"
+        textAnchor="middle"
+        fontSize="11"
+        fontWeight="600"
+        fill="#92400E"
+      >
+        {q3}
+      </text>
+      <text
+        x="204"
+        y="222"
+        textAnchor="middle"
+        fontSize="11"
+        fontWeight="600"
+        fill="#5B21B6"
+      >
+        {q4}
+      </text>
+      <text x="204" y="145" fontSize="9" fill="#64748B" textAnchor="middle">
+        Experimentação
+      </text>
+      <text x="96" y="145" fontSize="9" fill="#64748B" textAnchor="middle">
+        Reflexão
+      </text>
+      <text x="150" y="32" fontSize="9" fill="#64748B" textAnchor="middle">
+        Conceituação
+      </text>
+      <text x="150" y="275" fontSize="9" fill="#64748B" textAnchor="middle">
+        Vivência
+      </text>
       <circle cx={dotX} cy={dotY} r="16" fill="#0047AB" opacity=".15" />
       <circle cx={dotX} cy={dotY} r="8" fill="#0047AB" />
       <circle cx={dotX} cy={dotY} r="4" fill="#fff" />

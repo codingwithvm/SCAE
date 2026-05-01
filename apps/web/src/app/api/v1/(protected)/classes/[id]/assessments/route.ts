@@ -72,8 +72,8 @@ export const GET = withAuth(async (_, decodedTokenPayload, routeContext) => {
       instrument: assessment?.instrument || null,
       profile: result?.profile || null,
       tier: result?.tier || null,
-      tierLabel: result ? (TIER_LABELS[result.tier] || result.tier) : null,
-      tierColor: result ? (TIER_COLORS[result.tier] || "#6B7280") : null,
+      tierLabel: result ? TIER_LABELS[result.tier] || result.tier : null,
+      tierColor: result ? TIER_COLORS[result.tier] || "#6B7280" : null,
       profileColor,
       completedAt: assessment?.completedAt || null,
     };

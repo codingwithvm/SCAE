@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, User, GraduationCap } from "lucide-react";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  User,
+  GraduationCap,
+} from "lucide-react";
 
 interface TeacherSidebarProps {
   userName: string;

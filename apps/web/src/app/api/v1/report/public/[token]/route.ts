@@ -35,10 +35,7 @@ export async function GET(
   }
 
   if (new Date() > delivery.tokenExpiresAt) {
-    return NextResponse.json(
-      { error: "Link expirado" },
-      { status: 410 },
-    );
+    return NextResponse.json({ error: "Link expirado" }, { status: 410 });
   }
 
   if (!delivery.openedAt) {

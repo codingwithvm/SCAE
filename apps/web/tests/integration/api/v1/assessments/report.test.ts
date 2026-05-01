@@ -16,7 +16,9 @@ import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth/jwt";
 import { GET } from "@/app/api/v1/(protected)/assessments/[id]/report/route";
 
-const mockedAssessmentFindFirst = vi.mocked(prisma.assessment.findFirst) as unknown as ReturnType<typeof vi.fn>;
+const mockedAssessmentFindFirst = vi.mocked(
+  prisma.assessment.findFirst,
+) as unknown as ReturnType<typeof vi.fn>;
 const mockedVerifyToken = vi.mocked(verifyToken);
 
 function createRequest(url: string): Request {

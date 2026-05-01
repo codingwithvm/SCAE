@@ -38,11 +38,7 @@ export const GET = withAuth(async (_, decodedTokenPayload, routeContext) => {
   const isManager = MANAGER_ROLES.includes(decodedTokenPayload.role);
 
   let isTeacherOfStudent = false;
-  if (
-    !isOwner &&
-    !isManager &&
-    decodedTokenPayload.role === "TEACHER"
-  ) {
+  if (!isOwner && !isManager && decodedTokenPayload.role === "TEACHER") {
     const sharedClass = await prisma.teacherClass.findFirst({
       where: {
         teacherId: decodedTokenPayload.userId,
@@ -129,7 +125,11 @@ export const GET = withAuth(async (_, decodedTokenPayload, routeContext) => {
     response.compatibility = compatibility;
   }
 
-  if (isManager || decodedTokenPayload.role === "TEACHER" || isTeacherOfStudent) {
+  if (
+    isManager ||
+    decodedTokenPayload.role === "TEACHER" ||
+    isTeacherOfStudent
+  ) {
     response.axes = {
       x: Number(result.axisX),
       y: Number(result.axisY),
