@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, User } from "lucide-react";
+import { LayoutDashboard, ClipboardList, User, GraduationCap } from "lucide-react";
 
 interface TeacherSidebarProps {
   userName: string;
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
     href: "/teacher/assessment",
     icon: ClipboardList,
   },
+  { label: "Meus alunos", href: "/teacher/students", icon: GraduationCap },
   { label: "Meu perfil", href: "/teacher/profile", icon: User },
 ];
 
