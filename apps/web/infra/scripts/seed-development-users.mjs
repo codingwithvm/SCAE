@@ -14,10 +14,20 @@ const developmentPasswordHash =
 const developmentUsers = [
   {
     role: "STUDENT",
-    name: "Aluno Desenvolvimento",
+    name: "Aluno Desenvolvimento 1a4",
     email: null,
     registrationNumber: "2026001",
     birthDate: "2015-03-10",
+    passwordHash: null,
+    schoolInepCode: "35000001",
+    municipalityIbgeCode: "3550308",
+  },
+  {
+    role: "STUDENT",
+    name: "Aluno Desenvolvimento 5a9",
+    email: null,
+    registrationNumber: "2026002",
+    birthDate: "2012-07-22",
     passwordHash: null,
     schoolInepCode: "35000001",
     municipalityIbgeCode: "3550308",
@@ -76,7 +86,10 @@ async function seedDevelopmentUsers() {
   await databaseClient.end();
 
   console.log(
-    '> STUDENT:           matrícula "2026001" + nascimento "2015-03-10"',
+    '> STUDENT (1a4):     matrícula "2026001" + nascimento "2015-03-10"',
+  );
+  console.log(
+    '> STUDENT (5a9):     matrícula "2026002" + nascimento "2012-07-22"',
   );
   console.log('> TEACHER:           "professor@scae.dev" + "password"');
   console.log('> SCHOOL_MANAGER:    "gestor.escola@scae.dev" + "password"');

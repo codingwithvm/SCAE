@@ -19,8 +19,10 @@ const seedDevelopmentTeacherClassesScriptPath =
   "apps/web/infra/scripts/seed-development-teacher-classes.mjs";
 const seedDevelopmentStudentClassesScriptPath =
   "apps/web/infra/scripts/seed-development-student-classes.mjs";
+const seedDevelopmentReleasesScriptPath =
+  "apps/web/infra/scripts/seed-development-releases.mjs";
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
 const LOADING_DOT_INTERVAL_MS = 500;
 let isShuttingDown = false;
 
@@ -316,6 +318,41 @@ function seedDevelopmentStudentClasses() {
   });
 }
 
+function seedDevelopmentReleases() {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const finishSeedStep = startStepLoading(
+      10,
+      "Seeding development assessment releases",
+    );
+    const seedProcess = spawnProcess(
+      "node",
+      [seedDevelopmentReleasesScriptPath],
+      { stdio: "pipe" },
+    );
+
+    let seedOutput = "";
+    seedProcess.stdout.on("data", (chunk) => {
+      seedOutput += chunk.toString();
+    });
+
+    seedProcess.on("close", (exitCode) => {
+      if (exitCode !== 0) return rejectPromise(exitCode);
+      finishSeedStep();
+
+      const summaryBlock = seedOutput
+        .split("\n")
+        .filter((outputLine) => outputLine.startsWith(">"))
+        .join("\n");
+
+      if (summaryBlock) {
+        console.log(`\n${summaryBlock}\n`);
+      }
+
+      resolvePromise();
+    });
+  });
+}
+
 async function startDevEnvironment() {
   await startDockerServices();
   await waitForPostgres();
@@ -326,6 +363,7 @@ async function startDevEnvironment() {
   await seedDevelopmentClasses();
   await seedDevelopmentTeacherClasses();
   await seedDevelopmentStudentClasses();
+  await seedDevelopmentReleases();
 
   console.log("> Starting Next.js...\n");
 
