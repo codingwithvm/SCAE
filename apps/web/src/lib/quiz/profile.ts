@@ -1,4 +1,4 @@
-import { type ScaleValue } from "./questions";
+export type ScaleValue = 1 | 2 | 3 | 4 | 5;
 
 export type ProfileName = "Criativo" | "Analítico" | "Estrategista" | "Prático";
 
