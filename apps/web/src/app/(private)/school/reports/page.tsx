@@ -1,13 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { FileText, FileSpreadsheet } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import {
-  getProfileDistribution,
-  MOCK_CLASSES,
-  SCHOOL_NAME,
-} from "@/lib/school/data";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Loader2, Users, GraduationCap, Percent } from "lucide-react";
 
 const PROFILE_COLORS: Record<string, string> = {
   Criativo: "#F6AD55",
@@ -16,16 +11,79 @@ const PROFILE_COLORS: Record<string, string> = {
   Prático: "#FC8181",
 };
 
-const TOTAL_STUDENTS = 200;
-const ASSESSED_STUDENTS = 156;
-const PARTICIPATION_PCT = Math.round(
-  (ASSESSED_STUDENTS / TOTAL_STUDENTS) * 100,
-);
+interface ClassItem {
+  id: string;
+  name: string;
+}
+
+interface StudentRow {
+  profile: string | null;
+  tier: string | null;
+}
 
 export default function SchoolReportsPage() {
-  const [classFilter, setClassFilter] = useState("");
-  const distribution = getProfileDistribution();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [assessedCount, setAssessedCount] = useState(0);
+  const [distribution, setDistribution] = useState<Record<string, number>>({});
+  const [tierDist, setTierDist] = useState<Record<string, number>>({});
+  const [totalClasses, setTotalClasses] = useState(0);
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    fetch("/api/v1/classes/my", { headers })
+      .then((r) => r.json())
+      .then(async (classesRes) => {
+        const classes = (classesRes.classes || []) as ClassItem[];
+        setTotalClasses(classes.length);
+
+        let allStudents: StudentRow[] = [];
+        await Promise.all(
+          classes.map(async (c) => {
+            const res = await fetch(`/api/v1/classes/${c.id}/assessments`, {
+              headers,
+            });
+            const data = await res.json();
+            allStudents = allStudents.concat(data.students || []);
+          }),
+        );
+
+        setTotalStudents(allStudents.length);
+        const assessed = allStudents.filter((s) => s.profile !== null);
+        setAssessedCount(assessed.length);
+
+        const profDist: Record<string, number> = {};
+        const tDist: Record<string, number> = {};
+        for (const s of assessed) {
+          if (s.profile) profDist[s.profile] = (profDist[s.profile] || 0) + 1;
+          if (s.tier) tDist[s.tier] = (tDist[s.tier] || 0) + 1;
+        }
+        setDistribution(profDist);
+        setTierDist(tDist);
+      })
+      .finally(() => setLoading(false));
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={28} className="animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const assessedPct =
+    totalStudents > 0 ? Math.round((assessedCount / totalStudents) * 100) : 0;
   const totalAssessed = Object.values(distribution).reduce((a, b) => a + b, 0);
+  const maxCount = Math.max(...Object.values(distribution), 1);
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -34,174 +92,107 @@ export default function SchoolReportsPage() {
           Relatórios
         </h1>
         <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
-          {SCHOOL_NAME}
+          Visão geral dos resultados da escola
         </p>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-end gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-text-secondary font-(family-name:--font-inter)]">
-            Turma
-          </label>
-          <select
-            value={classFilter}
-            onChange={(e) => setClassFilter(e.target.value)}
-            className="h-10 px-3 w-55 rounded-md border border-border bg-background text-sm text-text-primary focus:outline-none focus:border-primary transition-colors font-(family-name:--font-inter)] cursor-pointer"
-          >
-            <option value="">Todas as turmas</option>
-            {MOCK_CLASSES.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-text-secondary font-(family-name:--font-inter)]">
-            Período
-          </label>
-          <select className="h-10 px-3 w-40 rounded-md border border-border bg-background text-sm text-text-primary focus:outline-none focus:border-primary transition-colors font-(family-name:--font-inter)] cursor-pointer">
-            <option>2024</option>
-            <option>2023</option>
-          </select>
-        </div>
+      <div className="flex gap-4">
+        <MetricCard
+          icon={<Users size={20} className="text-primary" />}
+          label="Turmas"
+          value={String(totalClasses)}
+        />
+        <MetricCard
+          icon={<GraduationCap size={20} className="text-primary" />}
+          label="Alunos"
+          value={String(totalStudents)}
+        />
+        <MetricCard
+          icon={<Percent size={20} className="text-primary" />}
+          label="Avaliados"
+          value={`${assessedCount} (${assessedPct}%)`}
+        />
       </div>
 
-      {/* Card: Participation */}
-      <div className="flex flex-col gap-4 bg-background rounded-2xl border border-border-light shadow-[0_2px_8px_var(--shadow-color)] p-6">
+      <div className="flex flex-col gap-4 bg-background rounded-2xl border border-border-light p-6">
         <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
-          Taxa de participação nas avaliações
+          Distribuição de perfis
         </h2>
-        <div className="flex flex-col gap-4">
-          <div className="flex items-end gap-3">
-            <span className="text-[48px] font-bold leading-none text-primary font-(family-name:--font-poppins)]">
-              {PARTICIPATION_PCT}%
-            </span>
-            <span className="text-base text-text-secondary font-(family-name:--font-inter)] pb-1">
-              dos alunos avaliados
-            </span>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-sm font-(family-name:--font-inter)]">
-              <span className="text-text-secondary">Participação</span>
-              <span className="font-semibold text-primary">
-                {PARTICIPATION_PCT}%
-              </span>
-            </div>
-            <div className="h-2.5 w-full rounded-full bg-surface overflow-hidden">
-              <div
-                className="h-full rounded-full bg-primary transition-all"
-                style={{ width: `${PARTICIPATION_PCT}%` }}
-              />
-            </div>
-          </div>
-          <span className="text-sm text-text-muted font-(family-name:--font-inter)]">
-            {ASSESSED_STUDENTS} de {TOTAL_STUDENTS} alunos
-          </span>
-        </div>
-      </div>
-
-      {/* Card: Profile distribution by class */}
-      <div className="flex flex-col gap-4 bg-background rounded-2xl border border-border-light shadow-[0_2px_8px_var(--shadow-color)] p-6">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
-            Perfis por turma
-          </h2>
-          <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-            Distribuição dos perfis cognitivos MCEES por turma
+        {totalAssessed === 0 ? (
+          <p className="text-sm text-text-secondary">
+            Nenhuma avaliação concluída ainda.
           </p>
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center justify-end gap-4 flex-wrap">
-          {Object.entries(PROFILE_COLORS).map(([profile, color]) => (
-            <div key={profile} className="flex items-center gap-1.5">
-              <div
-                className="w-3 h-3 rounded-sm"
-                style={{ backgroundColor: color }}
-              />
-              <span className="text-xs text-text-secondary font-(family-name:--font-inter)]">
-                {profile}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Bars per class */}
-        <div className="flex flex-col gap-3">
-          {(classFilter
-            ? MOCK_CLASSES.filter((c) => c.id === classFilter)
-            : MOCK_CLASSES.slice(0, 4)
-          ).map((cls) => (
-            <div key={cls.id} className="flex items-center gap-3">
-              <span className="text-sm text-text-secondary w-20 shrink-0 font-(family-name:--font-inter)]">
-                {cls.name}
-              </span>
-              <div className="flex flex-1 h-5 rounded overflow-hidden">
-                {(Object.entries(PROFILE_COLORS) as [string, string][]).map(
-                  ([profile, color], idx) => {
-                    const count =
-                      distribution[profile as keyof typeof distribution] ?? 0;
-                    const width =
-                      totalAssessed > 0 ? (count / totalAssessed) * 100 : 25;
-                    return (
-                      <div
-                        key={profile}
-                        title={`${profile}: ${count}`}
-                        className={idx > 0 ? "border-l border-white/20" : ""}
-                        style={{ width: `${width}%`, backgroundColor: color }}
-                      />
-                    );
-                  },
-                )}
+        ) : (
+          (Object.entries(distribution) as [string, number][])
+            .sort(([, a], [, b]) => b - a)
+            .map(([profile, count]) => (
+              <div key={profile} className="flex items-center gap-3">
+                <span className="text-sm font-medium text-text-secondary w-24 shrink-0">
+                  {profile}
+                </span>
+                <div className="flex-1 h-5 rounded bg-surface overflow-hidden">
+                  <div
+                    className="h-full rounded transition-all"
+                    style={{
+                      width: `${(count / maxCount) * 100}%`,
+                      backgroundColor: PROFILE_COLORS[profile] ?? "#63B3ED",
+                    }}
+                  />
+                </div>
+                <span className="text-sm font-medium text-text-secondary w-20 text-right shrink-0">
+                  {count} (
+                  {totalAssessed > 0
+                    ? Math.round((count / totalAssessed) * 100)
+                    : 0}
+                  %)
+                </span>
               </div>
-            </div>
-          ))}
-        </div>
+            ))
+        )}
       </div>
 
-      {/* Card: Activity progress */}
-      <div className="flex flex-col gap-4 bg-background rounded-2xl border border-border-light shadow-[0_2px_8px_var(--shadow-color)] p-6">
-        <div className="flex flex-col gap-1">
+      {Object.keys(tierDist).length > 0 && (
+        <div className="flex flex-col gap-4 bg-background rounded-2xl border border-border-light p-6">
           <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
-            Progresso nas atividades
+            Distribuição por consistência
           </h2>
-          <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-            Acompanhamento das atividades GSCAE realizadas pelos alunos
-          </p>
+          <div className="flex gap-4">
+            {Object.entries(tierDist)
+              .sort(([, a], [, b]) => b - a)
+              .map(([tier, count]) => (
+                <div
+                  key={tier}
+                  className="flex-1 flex flex-col items-center gap-1 rounded-xl border border-border-light bg-surface p-4"
+                >
+                  <span className="text-2xl font-bold text-text-primary">
+                    {count}
+                  </span>
+                  <span className="text-xs text-text-secondary">{tier}</span>
+                </div>
+              ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-5">
-          <MetricRow label="Atividades iniciadas" value="428" />
-          <MetricRow label="Atividades concluídas" value="312" />
-          <MetricRow label="Pontuação média" value="74 pts" />
-        </div>
-      </div>
-
-      {/* Export actions */}
-      <div className="flex items-center justify-end gap-3">
-        <Button variant="outline" size="sm" className="flex items-center gap-2">
-          <FileText size={16} aria-hidden="true" />
-          Exportar PDF
-        </Button>
-        <Button variant="outline" size="sm" className="flex items-center gap-2">
-          <FileSpreadsheet size={16} aria-hidden="true" />
-          Exportar CSV
-        </Button>
-      </div>
+      )}
     </div>
   );
 }
 
-function MetricRow({ label, value }: { label: string; value: string }) {
+function MetricCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-        {label}
-      </span>
-      <span className="text-sm font-semibold text-text-primary font-(family-name:--font-inter)]">
-        {value}
-      </span>
+    <div className="flex-1 flex flex-col gap-2 bg-background rounded-2xl border border-border-light p-6">
+      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-surface">
+        {icon}
+      </div>
+      <span className="text-2xl font-bold text-text-primary">{value}</span>
+      <span className="text-sm text-text-secondary">{label}</span>
     </div>
   );
 }
