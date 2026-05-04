@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Search, FileText } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -40,6 +40,8 @@ const PROFILE_COLORS: Record<string, { bg: string; text: string }> = {
 
 export default function TeacherStudentsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const classFromUrl = searchParams.get("class");
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [students, setStudents] = useState<StudentAssessment[]>([]);
@@ -59,7 +61,9 @@ export default function TeacherStudentsPage() {
       .then((res) => (res.ok ? res.json() : { classes: [] }))
       .then((data) => {
         setClasses(data.classes || []);
-        if (data.classes?.length > 0) {
+        if (classFromUrl && data.classes?.some((c: ClassInfo) => c.id === classFromUrl)) {
+          setSelectedClassId(classFromUrl);
+        } else if (data.classes?.length > 0) {
           setSelectedClassId(data.classes[0].id);
         }
       })
