@@ -158,7 +158,8 @@ export default function ClassProfilesPage({
                       className="h-full rounded-full flex items-center px-3 transition-all"
                       style={{
                         width: `${barWidth}%`,
-                        backgroundColor: BAR_COLORS[profile] || data?.color || "#94a3b8",
+                        backgroundColor:
+                          BAR_COLORS[profile] || data?.color || "#94a3b8",
                         minWidth: count > 0 ? "40px" : "0",
                       }}
                     >
@@ -198,8 +199,7 @@ export default function ClassProfilesPage({
                     <span
                       className="h-3 w-3 rounded-full"
                       style={{
-                        backgroundColor:
-                          BAR_COLORS[profile] || "#94a3b8",
+                        backgroundColor: BAR_COLORS[profile] || "#94a3b8",
                       }}
                     />
                     <span className="text-sm font-semibold text-text-primary">
@@ -222,7 +222,8 @@ export default function ClassProfilesPage({
                           <span
                             className="text-[11px] font-medium px-2 py-0.5 rounded-full"
                             style={{
-                              backgroundColor: (s.tierColor || "#94a3b8") + "15",
+                              backgroundColor:
+                                (s.tierColor || "#94a3b8") + "15",
                               color: s.tierColor || "#94a3b8",
                             }}
                           >

@@ -62,7 +62,9 @@ export default function TeacherProfilePage() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
-      .then((res) => setAssessments((res.data || []) as AssessmentHistoryItem[]))
+      .then((res) =>
+        setAssessments((res.data || []) as AssessmentHistoryItem[]),
+      )
       .finally(() => setLoading(false));
   }, [router]);
 

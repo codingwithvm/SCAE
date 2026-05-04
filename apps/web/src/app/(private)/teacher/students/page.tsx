@@ -61,7 +61,10 @@ export default function TeacherStudentsPage() {
       .then((res) => (res.ok ? res.json() : { classes: [] }))
       .then((data) => {
         setClasses(data.classes || []);
-        if (classFromUrl && data.classes?.some((c: ClassInfo) => c.id === classFromUrl)) {
+        if (
+          classFromUrl &&
+          data.classes?.some((c: ClassInfo) => c.id === classFromUrl)
+        ) {
           setSelectedClassId(classFromUrl);
         } else if (data.classes?.length > 0) {
           setSelectedClassId(data.classes[0].id);

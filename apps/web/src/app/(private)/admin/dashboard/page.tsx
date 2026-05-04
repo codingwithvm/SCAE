@@ -119,7 +119,11 @@ export default function AdminDashboardPage() {
             className="flex flex-col gap-2 bg-background rounded-2xl border border-border-light shadow-[0_2px_8px_var(--shadow-color)] p-6 no-underline hover:border-primary/30 transition-colors"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-cta">
-              <Icon size={20} className="text-primary-dark" aria-hidden="true" />
+              <Icon
+                size={20}
+                className="text-primary-dark"
+                aria-hidden="true"
+              />
             </div>
             <span className="text-3xl font-bold text-text-primary font-(family-name:--font-poppins)]">
               {value}

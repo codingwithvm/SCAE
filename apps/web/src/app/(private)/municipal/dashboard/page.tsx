@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  School,
-  BarChart3,
-  Loader2,
-} from "lucide-react";
+import { School, BarChart3, Loader2 } from "lucide-react";
 
 export default function MunicipalDashboardPage() {
   const router = useRouter();
