@@ -187,7 +187,7 @@ export const POST = withAuth(
 );
 
 export const GET = withAuth(
-  async (listRequest) => {
+  async (listRequest, decodedTokenPayload) => {
     const requestUrl = new URL(listRequest.url);
     const roleFilter = requestUrl.searchParams.get("role");
     const schoolIdFilter = requestUrl.searchParams.get("schoolId");
@@ -199,6 +199,24 @@ export const GET = withAuth(
     );
 
     const whereClause: Record<string, unknown> = { deletedAt: null };
+
+    if (decodedTokenPayload.role === "SCHOOL_MANAGER") {
+      const manager = await prisma.user.findUnique({
+        where: { id: decodedTokenPayload.userId },
+        select: { schoolId: true },
+      });
+      if (manager?.schoolId) {
+        whereClause.schoolId = manager.schoolId;
+      }
+    } else if (decodedTokenPayload.role === "MUNICIPAL_MANAGER") {
+      const manager = await prisma.user.findUnique({
+        where: { id: decodedTokenPayload.userId },
+        select: { municipalityId: true },
+      });
+      if (manager?.municipalityId) {
+        whereClause.school = { municipalityId: manager.municipalityId };
+      }
+    }
 
     if (roleFilter && isValidRole(roleFilter)) {
       whereClause.role = roleFilter;
@@ -250,5 +268,5 @@ export const GET = withAuth(
       perPage: perPageParam,
     });
   },
-  { allowedRoles: [...ALLOWED_ROLES] },
+  { allowedRoles: ["ADMIN", "SCHOOL_MANAGER", "MUNICIPAL_MANAGER"] },
 );
