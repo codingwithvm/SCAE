@@ -1,28 +1,90 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Loader2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
-import { MOCK_CLASSES } from "@/lib/teacher/classes";
-import { PROFILE_DATA } from "@/lib/quiz/profile-data";
 
 const PAGE_SIZE = 9;
 
-export default function ClassStudentsPage() {
-  const params = useParams();
-  const classId = Number(params.id);
-  const turma = MOCK_CLASSES.find((c) => c.id === classId);
+interface StudentRow {
+  studentId: string;
+  studentName: string;
+  studentRegistration: string;
+  assessmentId: string | null;
+  instrument: string | null;
+  profile: string | null;
+  tier: string | null;
+  tierLabel: string | null;
+  tierColor: string | null;
+  profileColor: string | null;
+  completedAt: string | null;
+}
 
+export default function ClassStudentsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: classId } = use(params);
+  const router = useRouter();
+  const [students, setStudents] = useState<StudentRow[]>([]);
+  const [className, setClassName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  if (!turma) {
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    Promise.all([
+      fetch(`/api/v1/classes/${classId}/assessments`, { headers }),
+      fetch(`/api/v1/classes/${classId}`, { headers }),
+    ])
+      .then(async ([studentsRes, classRes]) => {
+        if (!studentsRes.ok) {
+          const body = await studentsRes.json();
+          throw new Error(body.error || "Erro ao carregar alunos");
+        }
+        const studentsData = await studentsRes.json();
+        setStudents(studentsData.students || []);
+
+        if (classRes.ok) {
+          const classData = await classRes.json();
+          setClassName(classData.name || "");
+        }
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [classId, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={28} className="animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-20">
         <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
-          Turma não encontrada.
+          {error}
         </p>
         <Link
           href="/teacher/dashboard"
@@ -34,17 +96,14 @@ export default function ClassStudentsPage() {
     );
   }
 
-  const filteredStudents = turma.students.filter(
+  const filtered = students.filter(
     (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.registrationNumber.includes(search),
+      s.studentName.toLowerCase().includes(search.toLowerCase()) ||
+      (s.studentRegistration || "").includes(search),
   );
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredStudents.length / PAGE_SIZE),
-  );
-  const paginatedStudents = filteredStudents.slice(
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
@@ -56,7 +115,6 @@ export default function ClassStudentsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Back link */}
       <Link
         href="/teacher/dashboard"
         className="flex items-center gap-1.5 text-sm font-medium text-primary hover:opacity-75 transition-opacity no-underline w-fit"
@@ -65,17 +123,15 @@ export default function ClassStudentsPage() {
         Voltar para Dashboard
       </Link>
 
-      {/* Title */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
-          {turma.name} — {turma.grade}
+          {className || "Turma"}
         </h1>
         <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
-          {turma.totalStudents} alunos matriculados
+          {students.length} alunos matriculados
         </p>
       </div>
 
-      {/* Search */}
       <div className="relative w-full">
         <Search
           size={16}
@@ -91,13 +147,11 @@ export default function ClassStudentsPage() {
         />
       </div>
 
-      {/* Table */}
       <div className="rounded-lg border border-border-light bg-background overflow-hidden">
-        {/* Header */}
-        <div className="grid grid-cols-[1fr_140px_140px_140px] items-center h-12 px-4 bg-surface border-b border-border-light">
-          {["Nome", "Matrícula", "Avaliação", "Perfil"].map((col) => (
+        <div className="grid grid-cols-[1fr_140px_140px_140px_80px] items-center h-12 px-4 bg-surface border-b border-border-light">
+          {["Nome", "Matrícula", "Status", "Perfil", ""].map((col) => (
             <span
-              key={col}
+              key={col || "action"}
               className="text-xs font-semibold text-text-secondary uppercase tracking-wide font-(family-name:--font-inter)]"
             >
               {col}
@@ -105,84 +159,77 @@ export default function ClassStudentsPage() {
           ))}
         </div>
 
-        {/* Rows */}
-        {paginatedStudents.length === 0 ? (
+        {paginated.length === 0 ? (
           <div className="flex items-center justify-center py-10">
             <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
               Nenhum aluno encontrado.
             </p>
           </div>
         ) : (
-          paginatedStudents.map((student) => {
-            const profileData = student.profile
-              ? PROFILE_DATA[student.profile]
-              : null;
-
-            return (
-              <div
-                key={student.id}
-                className="grid grid-cols-[1fr_140px_140px_140px] items-center h-13 px-4 border-b border-border-light last:border-b-0"
-              >
-                {/* Name + avatar */}
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent shrink-0">
-                    <span className="text-xs font-semibold text-white font-(family-name:--font-poppins)]">
-                      {student.name.charAt(0)}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)] truncate">
-                    {student.name}
+          paginated.map((student) => (
+            <div
+              key={student.studentId}
+              className="grid grid-cols-[1fr_140px_140px_140px_80px] items-center h-13 px-4 border-b border-border-light last:border-b-0"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent shrink-0">
+                  <span className="text-xs font-semibold text-white font-(family-name:--font-poppins)]">
+                    {student.studentName.charAt(0)}
                   </span>
                 </div>
-
-                {/* Registration */}
-                <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-                  {student.registrationNumber}
+                <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)] truncate">
+                  {student.studentName}
                 </span>
-
-                {/* Assessment status */}
-                <div>
-                  <Badge
-                    variant={
-                      student.assessmentStatus === "Completo"
-                        ? "success"
-                        : "warning"
-                    }
-                  >
-                    {student.assessmentStatus}
-                  </Badge>
-                </div>
-
-                {/* Profile badge */}
-                <div>
-                  {profileData ? (
-                    <span
-                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold font-(family-name:--font-inter)]"
-                      style={{
-                        backgroundColor: profileData.badgeBg,
-                        color: profileData.badgeText,
-                      }}
-                    >
-                      <span
-                        className="h-1.5 w-1.5 rounded-full shrink-0"
-                        style={{ backgroundColor: profileData.color }}
-                        aria-hidden="true"
-                      />
-                      {student.profile}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-text-muted font-(family-name:--font-inter)]">
-                      —
-                    </span>
-                  )}
-                </div>
               </div>
-            );
-          })
+
+              <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+                {student.studentRegistration || "—"}
+              </span>
+
+              <div>
+                <Badge variant={student.profile ? "success" : "warning"}>
+                  {student.profile ? "Completo" : "Pendente"}
+                </Badge>
+              </div>
+
+              <div>
+                {student.profile && student.profileColor ? (
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold font-(family-name:--font-inter)]"
+                    style={{
+                      backgroundColor: student.profileColor + "15",
+                      color: student.profileColor,
+                    }}
+                  >
+                    <span
+                      className="h-1.5 w-1.5 rounded-full shrink-0"
+                      style={{ backgroundColor: student.profileColor }}
+                      aria-hidden="true"
+                    />
+                    {student.profile}
+                  </span>
+                ) : (
+                  <span className="text-xs text-text-muted font-(family-name:--font-inter)]">
+                    —
+                  </span>
+                )}
+              </div>
+
+              <div>
+                {student.assessmentId && (
+                  <Link
+                    href={`/report/${student.assessmentId}/manager`}
+                    className="text-xs font-medium text-primary no-underline hover:underline"
+                  >
+                    Ver
+                  </Link>
+                )}
+              </div>
+            </div>
+          ))
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button
@@ -210,7 +257,9 @@ export default function ClassStudentsPage() {
           ))}
 
           <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() =>
+              setCurrentPage((p) => Math.min(totalPages, p + 1))
+            }
             disabled={currentPage === totalPages}
             className="flex items-center gap-1 text-sm font-medium text-text-secondary hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
