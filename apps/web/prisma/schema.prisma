@@ -171,7 +171,6 @@ model AssessmentRelease {
   class      Class?      @relation(fields: [classId], references: [id])
   assessment Assessment?
 
-  @@unique([userId, instrument, state], name: "unique_active_release")
   @@index([userId])
   @@index([classId])
   @@index([state])
