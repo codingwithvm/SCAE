@@ -1,23 +1,77 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Search, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, Search, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { MOCK_CLASSES, SCHOOL_NAME, type SchoolClass } from "@/lib/school/data";
 
 const PAGE_SIZE = 10;
 
+interface ClassRow {
+  id: string;
+  name: string;
+  grade: number;
+  year: number;
+  schoolId: string;
+}
+
+interface TeacherOption {
+  id: string;
+  name: string;
+}
+
 export default function SchoolClassesPage() {
+  const router = useRouter();
+  const [classes, setClasses] = useState<ClassRow[]>([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [teachers, setTeachers] = useState<TeacherOption[]>([]);
 
-  const filtered = MOCK_CLASSES.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.teacher.toLowerCase().includes(search.toLowerCase()),
+  function loadData() {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    Promise.all([
+      fetch("/api/v1/classes/my", { headers }).then((r) => r.json()),
+      fetch("/api/v1/users?role=TEACHER&perPage=100", { headers }).then((r) =>
+        r.json(),
+      ),
+    ])
+      .then(([classesRes, teachersRes]) => {
+        setClasses(classesRes.classes || []);
+        setTeachers(
+          (teachersRes.data || []).map((t: { id: string; name: string }) => ({
+            id: t.id,
+            name: t.name,
+          })),
+        );
+      })
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadData();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={28} className="animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const filtered = classes.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()),
   );
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function handleSearch(value: string) {
@@ -27,17 +81,15 @@ export default function SchoolClassesPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Title */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
           Turmas
         </h1>
         <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
-          {SCHOOL_NAME}
+          {classes.length} turmas cadastradas
         </p>
       </div>
 
-      {/* Action bar */}
       <div className="flex items-center justify-between">
         <div className="relative w-80">
           <Search
@@ -64,36 +116,45 @@ export default function SchoolClassesPage() {
         </Button>
       </div>
 
-      {/* Table */}
       <div className="rounded-md border border-border-light bg-background overflow-hidden">
-        {/* Header row */}
         <div className="flex items-center gap-2 px-4 py-3 bg-surface">
           <span className="flex-1 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
             Nome
           </span>
           <span className="w-17.5 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
-            Ano
-          </span>
-          <span className="w-20 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
-            Turno
-          </span>
-          <span className="w-35 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
-            Professor
+            Série
           </span>
           <span className="w-17.5 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
-            Alunos
-          </span>
-          <span className="w-40 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
-            Ações
+            Ano
           </span>
         </div>
 
-        {paginated.map((row) => (
-          <ClassRow key={row.id} row={row} />
-        ))}
+        {paginated.length === 0 ? (
+          <div className="flex items-center justify-center py-10">
+            <p className="text-sm text-text-secondary">
+              Nenhuma turma encontrada.
+            </p>
+          </div>
+        ) : (
+          paginated.map((row) => (
+            <div
+              key={row.id}
+              className="flex items-center gap-2 px-4 py-3 border-t border-border-light"
+            >
+              <span className="flex-1 text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
+                {row.name}
+              </span>
+              <span className="w-17.5 text-sm text-text-secondary font-(family-name:--font-inter)]">
+                {row.grade}º
+              </span>
+              <span className="w-17.5 text-sm text-text-secondary font-(family-name:--font-inter)]">
+                {row.year}
+              </span>
+            </div>
+          ))
+        )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <Button
@@ -101,19 +162,17 @@ export default function SchoolClassesPage() {
             size="sm"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="flex items-center gap-1 text-sm"
           >
             Anterior
           </Button>
-          {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => {
-            const pg = i + 1;
-            return (
+          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(
+            (pg) => (
               <button
                 key={pg}
                 type="button"
                 onClick={() => setPage(pg)}
                 className={[
-                  "flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium transition-colors",
+                  "flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium transition-colors cursor-pointer",
                   pg === page
                     ? "bg-primary text-white"
                     : "text-text-secondary hover:bg-surface",
@@ -121,71 +180,77 @@ export default function SchoolClassesPage() {
               >
                 {pg}
               </button>
-            );
-          })}
+            ),
+          )}
           <Button
             variant="outline"
             size="sm"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="flex items-center gap-1 text-sm"
           >
             Próxima
           </Button>
         </div>
       )}
 
-      {/* Modal */}
-      {showModal && <NewClassModal onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <NewClassModal
+          teachers={teachers}
+          onClose={() => setShowModal(false)}
+          onSaved={() => {
+            setShowModal(false);
+            setLoading(true);
+            loadData();
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function ClassRow({ row }: { row: SchoolClass }) {
-  return (
-    <div className="flex items-center gap-2 px-4 py-3 border-t border-border-light">
-      <span className="flex-1 text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
-        {row.name}
-      </span>
-      <span className="w-17.5 text-sm text-text-secondary font-(family-name:--font-inter)]">
-        {row.year}
-      </span>
-      <span className="w-20 text-sm text-text-secondary font-(family-name:--font-inter)]">
-        {row.shift}
-      </span>
-      <span className="w-35 text-sm text-text-secondary font-(family-name:--font-inter)]">
-        {row.teacher}
-      </span>
-      <span className="w-17.5 text-sm text-text-secondary font-(family-name:--font-inter)]">
-        {row.studentCount}
-      </span>
-      <div className="w-40 flex items-center gap-4">
-        <button
-          type="button"
-          className="text-sm font-medium text-primary hover:opacity-75 transition-opacity cursor-pointer"
-        >
-          Editar
-        </button>
-        <button
-          type="button"
-          className="text-sm font-medium text-error hover:opacity-75 transition-opacity cursor-pointer"
-        >
-          Desativar
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function NewClassModal({ onClose }: { onClose: () => void }) {
+function NewClassModal({
+  teachers: _teachers,
+  onClose,
+  onSaved,
+}: {
+  teachers: TeacherOption[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const [name, setName] = useState("");
-  const [year, setYear] = useState("");
-  const [shift, setShift] = useState("");
-  const [teacher, setTeacher] = useState("");
+  const [grade, setGrade] = useState("");
+  const [year, setYear] = useState(String(new Date().getFullYear()));
+  const [saving, setSaving] = useState(false);
 
-  function handleSave() {
-    // TODO: persist via API
-    onClose();
+  async function handleSave() {
+    if (!name || !grade) return;
+    setSaving(true);
+
+    const token = localStorage.getItem("auth_token");
+    const stored = localStorage.getItem("auth_user");
+    const schoolId = stored
+      ? (JSON.parse(stored) as { schoolId?: string }).schoolId
+      : null;
+
+    const res = await fetch("/api/v1/classes", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        grade: parseInt(grade),
+        year: parseInt(year),
+        schoolId,
+      }),
+    });
+
+    if (res.ok) {
+      onSaved();
+    } else {
+      setSaving(false);
+    }
   }
 
   return (
@@ -196,7 +261,6 @@ function NewClassModal({ onClose }: { onClose: () => void }) {
       }}
     >
       <div className="flex flex-col w-120 bg-background rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] overflow-hidden">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-light">
           <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
             Nova turma
@@ -211,7 +275,6 @@ function NewClassModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex flex-col gap-5 px-6 py-6">
           <ModalField
             label="Nome da turma"
@@ -220,50 +283,34 @@ function NewClassModal({ onClose }: { onClose: () => void }) {
             onChange={setName}
           />
           <ModalSelect
-            label="Série/Ano"
+            label="Série"
             placeholder="Selecione a série..."
+            value={grade}
+            onChange={setGrade}
+            options={Array.from({ length: 9 }, (_, i) => ({
+              value: String(i + 1),
+              label: `${i + 1}º ano`,
+            }))}
+          />
+          <ModalField
+            label="Ano letivo"
+            placeholder="2026"
             value={year}
             onChange={setYear}
-            options={[
-              "1º ano",
-              "2º ano",
-              "3º ano",
-              "4º ano",
-              "5º ano",
-              "6º ano",
-              "7º ano",
-              "8º ano",
-              "9º ano",
-            ]}
-          />
-          <ModalSelect
-            label="Turno"
-            placeholder="Selecione o turno..."
-            value={shift}
-            onChange={setShift}
-            options={["Manhã", "Tarde", "Integral"]}
-          />
-          <ModalSelect
-            label="Professor responsável"
-            placeholder="Selecione o professor..."
-            value={teacher}
-            onChange={setTeacher}
-            options={[
-              "Ana Santos",
-              "Carlos Lima",
-              "Beatriz Rocha",
-              "Fernando Melo",
-            ]}
           />
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border-light">
           <Button variant="outline" size="sm" onClick={onClose}>
             Cancelar
           </Button>
-          <Button variant="primary" size="sm" onClick={handleSave}>
-            Salvar
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || !name || !grade}
+          >
+            {saving ? "Salvando..." : "Salvar"}
           </Button>
         </div>
       </div>
@@ -309,7 +356,7 @@ function ModalSelect({
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
-  options: string[];
+  options: { value: string; label: string }[];
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -325,11 +372,16 @@ function ModalSelect({
           {placeholder}
         </option>
         {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
+          <option key={o.value} value={o.value}>
+            {o.label}
           </option>
         ))}
       </select>
     </div>
   );
+}
+
+interface TeacherOption {
+  id: string;
+  name: string;
 }

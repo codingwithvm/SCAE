@@ -1,13 +1,9 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Timer } from "lucide-react";
-import {
-  MOCK_CLASSES,
-  getProfileDistribution,
-  PROFILE_BAR_COLORS,
-} from "@/lib/teacher/classes";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { PROFILE_DATA } from "@/lib/quiz/profile-data";
 import { type ProfileName } from "@/lib/quiz/profile";
 
@@ -18,234 +14,231 @@ const PROFILE_ORDER: ProfileName[] = [
   "Prático",
 ];
 
-export default function ClassProfilesPage() {
-  const params = useParams();
-  const classId = Number(params.id);
-  const turma = MOCK_CLASSES.find((c) => c.id === classId);
+const BAR_COLORS: Record<string, string> = {
+  Criativo: "#FF6B35",
+  Analítico: "#1E4FAE",
+  Estrategista: "#059669",
+  Prático: "#7C3AED",
+};
 
-  if (!turma) {
+interface StudentRow {
+  studentId: string;
+  studentName: string;
+  profile: string | null;
+  tier: string | null;
+  tierLabel: string | null;
+  tierColor: string | null;
+  profileColor: string | null;
+}
+
+export default function ClassProfilesPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: classId } = use(params);
+  const router = useRouter();
+  const [students, setStudents] = useState<StudentRow[]>([]);
+  const [className, setClassName] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    Promise.all([
+      fetch(`/api/v1/classes/${classId}/assessments`, { headers }),
+      fetch(`/api/v1/classes/${classId}`, { headers }),
+    ])
+      .then(async ([studentsRes, classRes]) => {
+        if (studentsRes.ok) {
+          const data = await studentsRes.json();
+          setStudents(data.students || []);
+        }
+        if (classRes.ok) {
+          const data = await classRes.json();
+          setClassName(data.name || "");
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [classId, router]);
+
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-20">
-        <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
-          Turma não encontrada.
-        </p>
-        <Link
-          href="/teacher/dashboard"
-          className="text-sm font-medium text-primary no-underline"
-        >
-          Voltar ao dashboard
-        </Link>
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={28} className="animate-spin text-primary" />
       </div>
     );
   }
 
-  const distribution = getProfileDistribution(turma.students);
-  const assessedCount = turma.assessedStudents;
-  const pendingStudents = turma.students.filter((s) => s.profile === null);
-  const pendingCount = pendingStudents.length;
-  const pendingPercent = Math.round((pendingCount / turma.totalStudents) * 100);
-  const assessedPercent = Math.round(
-    (assessedCount / turma.totalStudents) * 100,
-  );
+  const assessed = students.filter((s) => s.profile !== null);
+  const pending = students.length - assessed.length;
 
-  const maxCount = Math.max(
-    ...PROFILE_ORDER.map((p) => distribution[p].length),
-    1,
-  );
+  const distribution: Record<string, number> = {};
+  for (const p of PROFILE_ORDER) distribution[p] = 0;
+  for (const s of assessed) {
+    if (s.profile && s.profile in distribution) {
+      distribution[s.profile]++;
+    }
+  }
+
+  const maxCount = Math.max(...Object.values(distribution), 1);
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Back link */}
       <Link
-        href={`/teacher/classes/${turma.id}`}
+        href="/teacher/dashboard"
         className="flex items-center gap-1.5 text-sm font-medium text-primary hover:opacity-75 transition-opacity no-underline w-fit"
       >
         <ArrowLeft size={16} aria-hidden="true" />
-        Voltar para turma
+        Voltar para Dashboard
       </Link>
 
-      {/* Title */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
-          Distribuição de perfis
+          Perfis — {className}
         </h1>
         <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
-          {turma.name} — {turma.grade}
+          {assessed.length} avaliados de {students.length} alunos
+          {pending > 0 && ` · ${pending} pendentes`}
         </p>
       </div>
 
-      {/* Top row: chart card + summary metrics */}
-      <div className="flex gap-6">
-        {/* Chart card */}
-        <div className="flex flex-1 flex-col gap-5 rounded-2xl border border-border-light bg-background p-6">
-          <p className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
-            Perfis da turma
-          </p>
+      <div className="flex gap-3">
+        <div className="flex items-center gap-2 rounded-lg bg-surface border border-border-light px-4 py-3">
+          <span className="text-2xl font-bold text-text-primary">
+            {students.length}
+          </span>
+          <span className="text-sm text-text-secondary">Total</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-surface border border-border-light px-4 py-3">
+          <span className="text-2xl font-bold text-primary">
+            {assessed.length}
+          </span>
+          <span className="text-sm text-text-secondary">Avaliados</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-surface border border-border-light px-4 py-3">
+          <span className="text-2xl font-bold text-amber-600">{pending}</span>
+          <span className="text-sm text-text-secondary">Pendentes</span>
+        </div>
+      </div>
 
-          <div className="flex flex-col gap-4">
-            {PROFILE_ORDER.map((profileName) => {
-              const students = distribution[profileName];
-              const count = students.length;
-              const percent =
-                assessedCount > 0
-                  ? Math.round((count / turma.totalStudents) * 100)
+      <div className="rounded-2xl border border-border-light bg-background p-6">
+        <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)] mb-4">
+          Distribuição de perfis
+        </h2>
+
+        {assessed.length === 0 ? (
+          <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+            Nenhuma avaliação concluída ainda.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {PROFILE_ORDER.map((profile) => {
+              const count = distribution[profile] || 0;
+              const pct =
+                assessed.length > 0
+                  ? Math.round((count / assessed.length) * 100)
                   : 0;
-              const barWidth =
-                maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
-              const profileData = PROFILE_DATA[profileName];
-              const barColor = PROFILE_BAR_COLORS[profileName];
+              const barWidth = Math.round((count / maxCount) * 100);
+              const data = PROFILE_DATA[profile];
 
               return (
-                <div key={profileName} className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold font-(family-name:--font-inter)]"
-                        style={{
-                          backgroundColor: profileData.badgeBg,
-                          color: profileData.badgeText,
-                        }}
-                      >
-                        <span
-                          className="h-1.5 w-1.5 rounded-full shrink-0"
-                          style={{ backgroundColor: profileData.color }}
-                          aria-hidden="true"
-                        />
-                        {profileName}
-                      </span>
-                    </div>
-                    <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-                      {count} alunos ({percent}%)
-                    </span>
+                <div key={profile} className="flex items-center gap-3">
+                  <div className="w-24 text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
+                    {profile}
                   </div>
-                  <div className="h-3 w-full rounded-sm bg-surface overflow-hidden">
+                  <div className="flex-1 h-7 rounded-full bg-surface overflow-hidden">
                     <div
-                      className="h-full rounded-sm transition-all duration-500"
+                      className="h-full rounded-full flex items-center px-3 transition-all"
                       style={{
                         width: `${barWidth}%`,
-                        backgroundColor: barColor,
+                        backgroundColor:
+                          BAR_COLORS[profile] || data?.color || "#94a3b8",
+                        minWidth: count > 0 ? "40px" : "0",
                       }}
-                    />
+                    >
+                      {count > 0 && (
+                        <span className="text-xs font-bold text-white whitespace-nowrap">
+                          {count} ({pct}%)
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
-
-        {/* Summary metrics column */}
-        <div className="flex flex-col gap-4 w-70 shrink-0">
-          <div className="flex flex-col justify-center gap-1 rounded-xl border border-border-light bg-background px-5 py-4 h-20">
-            <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-              Total de alunos
-            </span>
-            <span className="text-3xl font-bold text-text-primary font-(family-name:--font-poppins)]">
-              {turma.totalStudents}
-            </span>
-          </div>
-
-          <div className="flex flex-col justify-center gap-1 rounded-xl border border-border-light bg-background px-5 py-4 h-25">
-            <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-              Avaliados
-            </span>
-            <span className="text-3xl font-bold text-success font-(family-name:--font-poppins)]">
-              {assessedCount}
-            </span>
-            <span className="text-xs text-text-muted font-(family-name:--font-inter)]">
-              {assessedPercent}% da turma
-            </span>
-          </div>
-
-          <div className="flex flex-col justify-center gap-1 rounded-xl border border-border-light bg-background px-5 py-4 h-25">
-            <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-              Pendentes
-            </span>
-            <span className="text-3xl font-bold text-warning font-(family-name:--font-poppins)]">
-              {pendingCount}
-            </span>
-            <span className="text-xs text-text-muted font-(family-name:--font-inter)]">
-              {pendingPercent}% da turma
-            </span>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Group section: alunos por perfil */}
-      <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
-          Alunos por perfil
-        </h2>
+      {assessed.length > 0 && (
+        <div className="rounded-2xl border border-border-light bg-background p-6">
+          <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)] mb-4">
+            Alunos por perfil
+          </h2>
 
-        <div className="flex flex-col gap-4">
-          {/* Profile groups — 2 per row */}
           <div className="grid grid-cols-2 gap-4">
-            {PROFILE_ORDER.map((profileName) => {
-              const students = distribution[profileName];
-              const profileData = PROFILE_DATA[profileName];
-              const visibleNames = students
-                .slice(0, 2)
-                .map((s) => s.name.split(" ").slice(0, 2).join(" "));
-              const extra = students.length - visibleNames.length;
-              const nameList =
-                extra > 0
-                  ? [...visibleNames, `+${extra}`].join(", ")
-                  : visibleNames.join(", ") || "—";
+            {PROFILE_ORDER.map((profile) => {
+              const profileStudents = assessed.filter(
+                (s) => s.profile === profile,
+              );
+              if (profileStudents.length === 0) return null;
 
               return (
                 <div
-                  key={profileName}
-                  className="flex flex-col gap-2 rounded-xl border border-border-light bg-background p-4"
+                  key={profile}
+                  className="rounded-xl border border-border-light p-4"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mb-3">
                     <span
-                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold font-(family-name:--font-inter)]"
+                      className="h-3 w-3 rounded-full"
                       style={{
-                        backgroundColor: profileData.badgeBg,
-                        color: profileData.badgeText,
+                        backgroundColor: BAR_COLORS[profile] || "#94a3b8",
                       }}
-                    >
-                      <span
-                        className="h-1.5 w-1.5 rounded-full shrink-0"
-                        style={{ backgroundColor: profileData.color }}
-                        aria-hidden="true"
-                      />
-                      {profileName}
+                    />
+                    <span className="text-sm font-semibold text-text-primary">
+                      {profile}
                     </span>
-                    <span className="text-xs font-medium text-text-secondary font-(family-name:--font-inter)]">
-                      {students.length} alunos
+                    <span className="text-xs text-text-muted ml-auto">
+                      {profileStudents.length} alunos
                     </span>
                   </div>
-                  <p className="text-xs text-text-muted font-(family-name:--font-inter)] leading-relaxed">
-                    {nameList}
-                  </p>
+                  <div className="flex flex-col gap-1">
+                    {profileStudents.map((s) => (
+                      <div
+                        key={s.studentId}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span className="text-text-secondary truncate">
+                          {s.studentName}
+                        </span>
+                        {s.tierLabel && (
+                          <span
+                            className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                            style={{
+                              backgroundColor:
+                                (s.tierColor || "#94a3b8") + "15",
+                              color: s.tierColor || "#94a3b8",
+                            }}
+                          >
+                            {s.tierLabel}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               );
             })}
           </div>
-
-          {/* Pending group */}
-          <div className="flex items-center gap-3 rounded-xl border border-border-light bg-background p-4 flex-wrap">
-            <Timer
-              size={16}
-              className="text-warning shrink-0"
-              aria-hidden="true"
-            />
-            <span className="text-sm font-semibold text-warning font-(family-name:--font-inter)]">
-              Pendentes
-            </span>
-            <span className="text-xs font-medium text-text-secondary font-(family-name:--font-inter)]">
-              {pendingCount} alunos
-            </span>
-            <span className="text-xs text-text-muted font-(family-name:--font-inter)]">
-              {pendingStudents
-                .slice(0, 2)
-                .map((s) => s.name.split(" ").slice(0, 2).join(" "))
-                .concat(pendingCount > 2 ? [`+${pendingCount - 2}`] : [])
-                .join(", ")}
-            </span>
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

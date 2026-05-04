@@ -1,163 +1,138 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  MapPin,
-  FileText,
-  Gamepad2,
-  ScrollText,
+  Building2,
   School,
   Users,
   UserCheck,
   GraduationCap,
+  FileText,
+  Loader2,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 
-const METRIC_ROWS = [
-  [
-    { label: "Municípios", value: "5", icon: MapPin },
-    { label: "Escolas", value: "38", icon: School },
-    { label: "Turmas", value: "152", icon: Users },
-  ],
-  [
-    { label: "Professores", value: "304", icon: UserCheck },
-    { label: "Alunos", value: "6.128", icon: GraduationCap },
-    { label: "Formulários", value: "4", icon: FileText },
-  ],
-];
-
-const STATUS_ITEMS = [
-  { label: "API: Online", ok: true },
-  { label: "Banco de dados: Online", ok: true },
-];
-
-const LAST_ACTIONS = [
-  "Admin realizou login em 12/04/2024 14:32",
-  "Maria Silva criou turma 5ºA em 12/04/2024 14:30",
-  "Ana Lima completou avaliação MCEES em 12/04/2024 14:28",
-  "Carlos Mendes editou escola em 12/04/2024 14:15",
-  "Sistema realizou backup em 12/04/2024 14:00",
-];
-
-const QUICK_BUTTONS = [
-  {
-    label: "Gerenciar municípios",
-    icon: MapPin,
-    href: "/admin/municipalities",
-  },
-  { label: "Gerenciar formulários", icon: FileText, href: "/admin/forms" },
-  { label: "Gerenciar simuladores", icon: Gamepad2, href: "/admin/simulators" },
-  { label: "Ver logs", icon: ScrollText, href: "/admin/logs" },
-];
+interface Metric {
+  label: string;
+  value: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  href: string;
+}
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState<Metric[]>([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    Promise.all([
+      fetch("/api/v1/municipalities?perPage=1", { headers }).then((r) =>
+        r.json(),
+      ),
+      fetch("/api/v1/schools?perPage=1", { headers }).then((r) => r.json()),
+      fetch("/api/v1/users?role=TEACHER&perPage=1", { headers }).then((r) =>
+        r.json(),
+      ),
+      fetch("/api/v1/users?role=STUDENT&perPage=1", { headers }).then((r) =>
+        r.json(),
+      ),
+      fetch("/api/v1/users?role=SCHOOL_MANAGER&perPage=1", { headers }).then(
+        (r) => r.json(),
+      ),
+    ])
+      .then(([muniRes, schoolRes, teacherRes, studentRes, managerRes]) => {
+        setMetrics([
+          {
+            label: "Municípios",
+            value: String(muniRes.total || 0),
+            icon: Building2,
+            href: "/admin/municipalities",
+          },
+          {
+            label: "Escolas",
+            value: String(schoolRes.total || 0),
+            icon: School,
+            href: "/admin/municipalities",
+          },
+          {
+            label: "Gestores",
+            value: String(managerRes.total || 0),
+            icon: UserCheck,
+            href: "/admin/municipalities",
+          },
+          {
+            label: "Professores",
+            value: String(teacherRes.total || 0),
+            icon: Users,
+            href: "/admin/municipalities",
+          },
+          {
+            label: "Alunos",
+            value: String(studentRes.total || 0),
+            icon: GraduationCap,
+            href: "/admin/municipalities",
+          },
+          {
+            label: "Instrumentos",
+            value: "4",
+            icon: FileText,
+            href: "/admin/forms",
+          },
+        ]);
+      })
+      .finally(() => setLoading(false));
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={28} className="animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Title */}
-      <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
-        Painel administrativo
-      </h1>
-
-      {/* Metrics grid — 2 rows × 3 cols */}
-      <div className="flex flex-col gap-4">
-        {METRIC_ROWS.map((row, rowIdx) => (
-          <div key={rowIdx} className="grid grid-cols-3 gap-4">
-            {row.map(({ label, value, icon: Icon }) => (
-              <div
-                key={label}
-                className="flex flex-col gap-2 bg-background rounded-lg border border-border-light shadow-[0_2px_8px_var(--shadow-color)] p-6"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-cta shrink-0">
-                  <Icon
-                    size={20}
-                    className="text-primary-dark"
-                    aria-hidden="true"
-                  />
-                </div>
-                <span className="text-3xl font-bold text-text-primary font-(family-name:--font-poppins)]">
-                  {value}
-                </span>
-                <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
-        ))}
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
+          Painel Administrativo
+        </h1>
+        <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
+          Visão geral do sistema SCAE
+        </p>
       </div>
 
-      {/* Two col: status + last actions */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* Status do sistema */}
-        <div className="flex flex-col gap-4 bg-background rounded-lg border border-border-light shadow-[0_2px_8px_var(--shadow-color)] p-6">
-          <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
-            Status do sistema
-          </h2>
-          <div className="flex flex-col gap-3">
-            {STATUS_ITEMS.map(({ label, ok }) => (
-              <div key={label} className="flex items-center gap-2">
-                <div
-                  className={[
-                    "w-2.5 h-2.5 rounded-full shrink-0",
-                    ok ? "bg-success" : "bg-error",
-                  ].join(" ")}
-                />
-                <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
-          <span className="text-xs text-text-secondary font-(family-name:--font-inter)]">
-            Última sincronização: 12/04/2024 14:32
-          </span>
-        </div>
-
-        {/* Últimas ações */}
-        <div className="flex flex-col gap-3 bg-background rounded-lg border border-border-light shadow-[0_2px_8px_var(--shadow-color)] p-6">
-          <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
-            Últimas ações
-          </h2>
-          <div className="flex flex-col gap-3">
-            {LAST_ACTIONS.map((action) => (
-              <span
-                key={action}
-                className="text-sm text-text-primary font-(family-name:--font-inter)]"
-              >
-                {action}
-              </span>
-            ))}
-          </div>
+      <div className="grid grid-cols-3 gap-4">
+        {metrics.map(({ label, value, icon: Icon, href }) => (
           <Link
-            href="/admin/logs"
-            className="text-sm font-semibold text-primary hover:opacity-75 transition-opacity self-start"
+            key={label}
+            href={href}
+            className="flex flex-col gap-2 bg-background rounded-2xl border border-border-light shadow-[0_2px_8px_var(--shadow-color)] p-6 no-underline hover:border-primary/30 transition-colors"
           >
-            Ver todos os logs →
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-cta">
+              <Icon
+                size={20}
+                className="text-primary-dark"
+                aria-hidden="true"
+              />
+            </div>
+            <span className="text-3xl font-bold text-text-primary font-(family-name:--font-poppins)]">
+              {value}
+            </span>
+            <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+              {label}
+            </span>
           </Link>
-        </div>
-      </div>
-
-      {/* Quick access */}
-      <div className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
-          Acesso rápido
-        </h2>
-        <div className="flex items-center gap-3">
-          {QUICK_BUTTONS.map(({ label, icon: Icon, href }) => (
-            <Button
-              key={label}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-              asChild
-            >
-              <Link href={href}>
-                <Icon size={16} aria-hidden="true" />
-                {label}
-              </Link>
-            </Button>
-          ))}
-        </div>
+        ))}
       </div>
     </div>
   );

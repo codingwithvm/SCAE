@@ -26,9 +26,32 @@ export const GET = withAuth(async (_, decodedTokenPayload) => {
     return NextResponse.json({ classes });
   }
 
+  const schoolScoped = decodedTokenPayload.role === "SCHOOL_MANAGER";
+  const municipalScoped = decodedTokenPayload.role === "MUNICIPAL_MANAGER";
+
+  let schoolFilter: Record<string, unknown> = {};
+
+  if (schoolScoped) {
+    const manager = await prisma.user.findUnique({
+      where: { id: decodedTokenPayload.userId },
+      select: { schoolId: true },
+    });
+    if (manager?.schoolId) {
+      schoolFilter = { schoolId: manager.schoolId };
+    }
+  } else if (municipalScoped) {
+    const manager = await prisma.user.findUnique({
+      where: { id: decodedTokenPayload.userId },
+      select: { municipalityId: true },
+    });
+    if (manager?.municipalityId) {
+      schoolFilter = { school: { municipalityId: manager.municipalityId } };
+    }
+  }
+
   const classes = await prisma.class.findMany({
-    where: { deletedAt: null },
-    select: { id: true, name: true, grade: true, year: true },
+    where: { deletedAt: null, ...schoolFilter },
+    select: { id: true, name: true, grade: true, year: true, schoolId: true },
     orderBy: [{ year: "desc" }, { name: "asc" }],
   });
 
