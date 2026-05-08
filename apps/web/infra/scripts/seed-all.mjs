@@ -12,6 +12,7 @@ const scripts = [
   "seed-development-student-classes.mjs",
   "seed-development-teacher-classes.mjs",
   "seed-development-releases.mjs",
+  "seed-development-assessments.mjs",
 ];
 
 console.log("=== SCAE Development Seed ===\n");
@@ -31,12 +32,16 @@ for (const script of scripts) {
 console.log("=== Seed complete ===");
 console.log("\nCredentials:");
 console.log(
-  '  STUDENT (1a4):     matrícula "2026001" + nascimento "2015-03-10"',
+  '  STUDENT (1º Ano): matrícula "2026101" + nascimento "2019-02-14"',
 );
 console.log(
-  '  STUDENT (5a9):     matrícula "2026002" + nascimento "2012-07-22"',
+  '  STUDENT (5º Ano): matrícula "2026501" + nascimento "2015-03-10"',
 );
-console.log('  TEACHER:           "professor@scae.dev" + "password"');
-console.log('  SCHOOL_MANAGER:    "gestor.escola@scae.dev" + "password"');
-console.log('  MUNICIPAL_MANAGER: "gestor.municipal@scae.dev" + "password"');
-console.log('  ADMIN:             "admin@scae.dev" + "password"');
+console.log(
+  '  STUDENT (9º Ano): matrícula "2026901" + nascimento "2011-07-12"',
+);
+console.log('  TEACHER 1:        "professor@scae.dev" + "password"');
+console.log('  TEACHER 2:        "professor2@scae.dev" + "password"');
+console.log('  SCHOOL_MANAGER:   "gestor.escola@scae.dev" + "password"');
+console.log('  MUNICIPAL_MANAGER:"gestor.municipal@scae.dev" + "password"');
+console.log('  ADMIN:            "admin@scae.dev" + "password"');
