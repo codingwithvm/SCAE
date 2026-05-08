@@ -34,6 +34,21 @@ export const POST = withAuth(
       );
     }
 
+    const alreadyCompleted = await prisma.assessment.findFirst({
+      where: {
+        userId: decodedTokenPayload.userId,
+        instrument: pendingRelease.instrument,
+        completedAt: { not: null },
+      },
+    });
+
+    if (alreadyCompleted) {
+      return NextResponse.json(
+        { error: "Assessment already completed for this instrument" },
+        { status: 409 },
+      );
+    }
+
     const createdAssessment = await prisma.$transaction(async (tx) => {
       await tx.assessmentRelease.update({
         where: { id: releaseId },

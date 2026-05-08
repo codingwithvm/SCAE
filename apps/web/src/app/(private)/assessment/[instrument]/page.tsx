@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, LogOut, Loader2 } from "lucide-react";
@@ -92,8 +92,12 @@ function AssessmentFlow({
   router: ReturnType<typeof useRouter>;
 }) {
   const isMCEES = instrument !== "mees_prof";
+  const isTeacherInstrument =
+    instrument === "mees_prof" || instrument === "mcees_prof";
   const dbInstrument = instrument.toUpperCase();
   const startTime = useRef(Date.now());
+  const searchParams = useSearchParams();
+  const initialStep = Number(searchParams.get("step")) || 0;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +105,7 @@ function AssessmentFlow({
   const [data, setData] = useState<InstrumentData | null>(null);
   const [releaseId, setReleaseId] = useState<string | null>(null);
 
-  const [blockIndex, setBlockIndex] = useState(0);
+  const [blockIndex, setBlockIndex] = useState(initialStep);
   const [blockRanks, setBlockRanks] = useState<
     Record<string, Record<Dimension, number | null>>
   >({});
@@ -205,6 +209,20 @@ function AssessmentFlow({
     loading,
     screen,
   ]);
+
+  useEffect(() => {
+    if (!loading && screen === "questions") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("step", String(blockIndex));
+      router.replace(url.pathname + url.search, { scroll: false });
+    }
+  }, [blockIndex, loading, screen, router]);
+
+  useEffect(() => {
+    if (screen === "done" && isTeacherInstrument && resultAssessmentId) {
+      router.push(`/report/${resultAssessmentId}`);
+    }
+  }, [screen, isTeacherInstrument, resultAssessmentId, router]);
 
   function getAuthHeaders(): Record<string, string> {
     const token = localStorage.getItem("auth_token");
@@ -420,6 +438,10 @@ function AssessmentFlow({
   }
 
   if (screen === "done") {
+    if (isTeacherInstrument) {
+      return null;
+    }
+
     return (
       <InlineStudentReport
         assessmentId={resultAssessmentId}
@@ -459,7 +481,7 @@ function AssessmentFlow({
             </span>
           </div>
 
-          <div className="w-[116px]" />
+          <div className="w-29" />
         </header>
 
         <main className="flex flex-1 items-center justify-center px-8 py-8">
