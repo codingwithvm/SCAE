@@ -20,7 +20,7 @@ export type AllProfiles = Record<string, InstrumentProfiles>;
 
 export const PROFILES: AllProfiles = {
   mcees_1a4: {
-    Analitico: {
+    Analítico: {
       titulo: "Aprendiz Analítico",
       cor: "#1D4ED8",
       desc: "Você tem uma mente que precisa entender o porquê de tudo! Aprende melhor quando as explicações são claras, organizadas e completas — você não gosta de fazer algo sem saber exatamente como funciona. Sua capacidade de prestar atenção nos detalhes e de guardar informações de forma ordenada é um presente especial. Você pensa com profundidade e, quando entende bem um assunto, dificilmente esquece o que aprendeu.",
@@ -113,7 +113,7 @@ export const PROFILES: AllProfiles = {
       gscae:
         "No simulador G-SCAE, você vai encontrar os desafios que mais combinam com você! No estágio Percebe, vai observar situações reais; no Entende, vai capturar os princípios por trás delas; no Aplica, vai criar estratégias concretas para agir; e no Resolve, vai colocar tudo em prática para encontrar a solução mais inteligente. Os simuladores foram feitos para aprendizes que, como você, precisam unir conhecimento e ação para se sentirem verdadeiramente engajados!",
     },
-    Pratico: {
+    Prático: {
       titulo: "Aprendiz Prático",
       cor: "#7C3AED",
       desc: "Você aprende fazendo — e isso é uma habilidade incrível! Sua mente é curiosa e ativa: prefere experimentar, descobrir e testar do que ficar ouvindo explicações longas. Você tem muita energia quando pode colocar as mãos na massa, e não tem medo de tentar coisas novas mesmo sem saber exatamente o que vai acontecer. Cada tentativa, mesmo as que não deram certo, é uma aula poderosa para você. Sua coragem de tentar e sua capacidade de aprender pela experiência direta são qualidades que muitos sonham ter!",
@@ -175,7 +175,7 @@ export const PROFILES: AllProfiles = {
     },
   },
   mcees_5a9: {
-    Analitico: {
+    Analítico: {
       titulo: "Perfil Analítico",
       cor: "#1D4ED8",
       desc: "Você aprende com máxima eficiência quando as ideias são apresentadas de forma lógica, estruturada e fundamentada. Sua capacidade analítica, atenção aos detalhes e habilidade para identificar padrões e inconsistências são diferenciais intelectuais que poucos desenvolvem tão naturalmente. Você pensa com profundidade antes de agir e retém com consistência o que aprende quando há rigor e fundamentação. Esse perfil é especialmente valorizado em contextos que exigem pensamento crítico, precisão e argumentação.",
@@ -268,7 +268,7 @@ export const PROFILES: AllProfiles = {
       gscae:
         "No simulador G-SCAE, seu perfil Estrategista encontrará os desafios mais completos e motivadores! No Percebe, mapeará o contexto; no Entende, construirá a base teórica; no Aplica, criará estratégias específicas; e no Resolve, liderará a busca pela solução mais inteligente e eficaz!",
     },
-    Pratico: {
+    Prático: {
       titulo: "Perfil Prático",
       cor: "#7C3AED",
       desc: "Você aprende com máxima eficiência quando pode agir, experimentar e descobrir pela prática direta. Sua inteligência está profundamente orientada para a realidade concreta: você processa e retém conhecimento quando pode tocá-lo, testá-lo e aplicá-lo em situações reais. Cada erro é uma fonte de aprendizagem, cada experimento é uma aula, cada projeto é uma oportunidade de crescimento. Você tem resiliência natural e aprende com velocidade impressionante quando está no ambiente certo.",
@@ -330,7 +330,7 @@ export const PROFILES: AllProfiles = {
     },
   },
   mcees_prof: {
-    Analitico: {
+    Analítico: {
       titulo: "Aprendiz Analítico — Perfil Profissional",
       cor: "#1D4ED8",
       desc: "Como profissional da educação, você aprende com maior eficiência quando o conteúdo é apresentado de forma estruturada, rigorosa e fundamentada teoricamente. Sua capacidade analítica refinada e atenção às evidências são diferenciais que elevam a qualidade das suas práticas pedagógicas. Você prefere a reflexão aprofundada à ação imediata, e quando domina conceitualmente algo, traduz esse domínio em práticas de ensino excepcionalmente bem fundamentadas e sistemáticas.",
@@ -411,7 +411,7 @@ export const PROFILES: AllProfiles = {
       gscae:
         "No simulador G-SCAE, seu perfil Estrategista encontrará os desafios mais completos e motivadores! No Percebe, mapeará o contexto; no Entende, construirá a base teórica; no Aplica, criará estratégias específicas; e no Resolve, liderará a busca pela solução mais inteligente e eficaz!",
     },
-    Pratico: {
+    Prático: {
       titulo: "Aprendiz Prático — Perfil Profissional",
       cor: "#7C3AED",
       desc: "Como profissional da educação, você aprende com maior eficiência quando pode experimentar, aplicar e descobrir diretamente na prática pedagógica. Sua inteligência está profundamente orientada para o resultado concreto em sala de aula: você processa os aprendizados das formações quando pode testá-los e ajustá-los a partir do feedback real dos seus alunos. Cada aula é um laboratório de aprendizagem para você.",
