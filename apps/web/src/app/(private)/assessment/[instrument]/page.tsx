@@ -153,8 +153,13 @@ function AssessmentFlow({
           allowed: boolean;
           releaseId?: string;
           instrument?: string;
+          completedAssessmentId?: string;
         }) => {
           if (!verifyData.allowed || !verifyData.releaseId) {
+            if (verifyData.completedAssessmentId) {
+              router.replace(`/report/${verifyData.completedAssessmentId}`);
+              return;
+            }
             setError(
               "Você não tem uma avaliação liberada para este instrumento",
             );

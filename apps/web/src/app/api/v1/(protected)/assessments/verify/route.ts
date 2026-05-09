@@ -32,21 +32,30 @@ export const POST = withAuth(
       orderBy: { createdAt: "asc" },
     });
 
-    const completedInstruments = await prisma.assessment.findMany({
+    const completedAssessments = await prisma.assessment.findMany({
       where: {
         userId: decodedTokenPayload.userId,
         completedAt: { not: null },
       },
-      select: { instrument: true },
+      select: { id: true, instrument: true },
     });
 
-    const completedSet = new Set(completedInstruments.map((a) => a.instrument));
+    const completedMap = new Map(
+      completedAssessments.map((a) => [a.instrument, a.id]),
+    );
     const filtered = activeReleases.filter(
-      (r) => !completedSet.has(r.instrument),
+      (r) => !completedMap.has(r.instrument),
     );
 
     if (filtered.length === 0) {
-      return NextResponse.json({ allowed: false, releases: [] });
+      const completedId = instrument
+        ? completedMap.get(instrument) ?? null
+        : null;
+      return NextResponse.json({
+        allowed: false,
+        releases: [],
+        completedAssessmentId: completedId,
+      });
     }
 
     return NextResponse.json({
