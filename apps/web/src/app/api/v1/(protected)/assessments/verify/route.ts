@@ -49,7 +49,7 @@ export const POST = withAuth(
 
     if (filtered.length === 0) {
       const completedId = instrument
-        ? completedMap.get(instrument) ?? null
+        ? (completedMap.get(instrument) ?? null)
         : null;
       return NextResponse.json({
         allowed: false,

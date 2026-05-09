@@ -225,7 +225,7 @@ function AssessmentFlow({
 
   useEffect(() => {
     if (screen === "done" && isTeacherInstrument && resultAssessmentId) {
-      router.push(`/report/${resultAssessmentId}`);
+      router.replace(`/report/${resultAssessmentId}`);
     }
   }, [screen, isTeacherInstrument, resultAssessmentId, router]);
 
