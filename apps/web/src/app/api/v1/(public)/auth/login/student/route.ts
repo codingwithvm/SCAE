@@ -49,6 +49,7 @@ export async function POST(loginRequest: Request) {
       user: {
         id: student.id,
         name: student.name,
+        registrationNumber: student.registrationNumber,
         role: student.role,
       },
     });

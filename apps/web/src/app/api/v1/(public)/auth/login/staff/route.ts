@@ -52,6 +52,7 @@ export async function POST(loginRequest: Request) {
       user: {
         id: staffMember.id,
         name: staffMember.name,
+        email: staffMember.email,
         role: staffMember.role,
       },
     });
