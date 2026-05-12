@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Modal, ModalField } from "@/components/ui/Modal";
+import { useToast } from "@/components/ui/Toast";
 
 interface TeacherRow {
   id: string;
@@ -17,9 +20,14 @@ export default function SchoolTeachersPage() {
   const [teachers, setTeachers] = useState<TeacherRow[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+  function getToken() {
+    return localStorage.getItem("auth_token");
+  }
+
+  function fetchTeachers() {
+    const token = getToken();
     if (!token) {
       router.replace("/login");
       return;
@@ -29,9 +37,20 @@ export default function SchoolTeachersPage() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
-      .then((data) => setTeachers(data.data || []))
+      .then((data) => {
+        const rows = (data.data || []) as TeacherRow[];
+        rows.sort(
+          (a: TeacherRow, b: TeacherRow) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        setTeachers(rows);
+      })
       .finally(() => setLoading(false));
-  }, [router]);
+  }
+
+  useEffect(() => {
+    fetchTeachers();
+  }, []);
 
   if (loading) {
     return (
@@ -52,13 +71,19 @@ export default function SchoolTeachersPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
-          Professores
-        </h1>
-        <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
-          {teachers.length} professores vinculados
-        </p>
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
+            Professores
+          </h1>
+          <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
+            {teachers.length} professores vinculados
+          </p>
+        </div>
+        <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
+          <Plus size={16} />
+          Novo professor
+        </Button>
       </div>
 
       <div className="relative w-80">
@@ -121,6 +146,115 @@ export default function SchoolTeachersPage() {
           ))
         )}
       </div>
+
+      {showModal && (
+        <NewTeacherModal
+          onClose={() => setShowModal(false)}
+          onSaved={() => {
+            setShowModal(false);
+            setLoading(true);
+            fetchTeachers();
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function NewTeacherModal({
+  onClose,
+  onSaved,
+}: {
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const toast = useToast();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSave() {
+    if (!name || !email || !password) return;
+    setSaving(true);
+    setError(null);
+
+    const token = localStorage.getItem("auth_token");
+
+    const res = await fetch("/api/v1/users", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        role: "TEACHER",
+        name,
+        email,
+        password,
+      }),
+    });
+
+    if (res.ok) {
+      toast.success("Professor cadastrado com sucesso");
+      onSaved();
+    } else {
+      const body = await res.json().catch(() => null);
+      const msg =
+        body?.error === "User with this email already exists"
+          ? "Já existe um usuário com este email"
+          : body?.error || "Erro ao cadastrar professor";
+      setError(msg);
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal
+      title="Novo professor"
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || !name || !email || !password}
+          >
+            {saving ? "Salvando..." : "Salvar"}
+          </Button>
+        </>
+      }
+    >
+      <ModalField
+        label="Nome completo"
+        placeholder="Ex: Maria da Silva"
+        value={name}
+        onChange={setName}
+      />
+      <ModalField
+        label="Email"
+        placeholder="professor@escola.edu.br"
+        value={email}
+        onChange={setEmail}
+        type="email"
+      />
+      <ModalField
+        label="Senha"
+        placeholder="Mínimo 6 caracteres"
+        value={password}
+        onChange={setPassword}
+        type="password"
+      />
+      {error && (
+        <p className="text-sm text-error font-(family-name:--font-inter)]">
+          {error}
+        </p>
+      )}
+    </Modal>
   );
 }

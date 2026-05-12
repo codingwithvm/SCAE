@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, FileText } from "lucide-react";
+import { Search, FileText, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Modal, ModalField } from "@/components/ui/Modal";
+import { useToast } from "@/components/ui/Toast";
 
 interface ClassInfo {
   id: string;
@@ -40,11 +42,13 @@ const PROFILE_COLORS: Record<string, { bg: string; text: string }> = {
 
 export default function SchoolStudentsPage() {
   const router = useRouter();
+  const toast = useToast();
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [students, setStudents] = useState<StudentAssessment[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
@@ -92,15 +96,35 @@ export default function SchoolStudentsPage() {
 
   const selectedClass = classes.find((c) => c.id === selectedClassId);
 
+  function reloadStudents() {
+    if (!selectedClassId) return;
+    const token = localStorage.getItem("auth_token");
+    if (!token) return;
+
+    setLoading(true);
+    fetch(`/api/v1/classes/${selectedClassId}/assessments`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : { students: [] }))
+      .then((data) => setStudents(data.students || []))
+      .finally(() => setLoading(false));
+  }
+
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
-          Meus Alunos
-        </h1>
-        <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
-          Relatórios de avaliação dos alunos das suas turmas
-        </p>
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
+            Meus Alunos
+          </h1>
+          <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
+            Relatórios de avaliação dos alunos das suas turmas
+          </p>
+        </div>
+        <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
+          <Plus size={16} />
+          Novo aluno
+        </Button>
       </div>
 
       <div className="flex items-center gap-3">
@@ -177,7 +201,116 @@ export default function SchoolStudentsPage() {
           ))}
         </div>
       )}
+
+      {showCreate && (
+        <NewStudentModal
+          onClose={() => setShowCreate(false)}
+          onSaved={() => {
+            setShowCreate(false);
+            reloadStudents();
+          }}
+          toast={toast}
+        />
+      )}
     </div>
+  );
+}
+
+function NewStudentModal({
+  onClose,
+  onSaved,
+  toast,
+}: {
+  onClose: () => void;
+  onSaved: () => void;
+  toast: ReturnType<typeof useToast>;
+}) {
+  const [name, setName] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSave() {
+    if (!name || !registrationNumber || !birthDate) return;
+    setSaving(true);
+    setError(null);
+
+    const token = localStorage.getItem("auth_token");
+
+    const res = await fetch("/api/v1/users", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        role: "STUDENT",
+        name,
+        registrationNumber,
+        birthDate,
+      }),
+    });
+
+    if (res.ok) {
+      toast.success("Aluno cadastrado com sucesso");
+      onSaved();
+    } else {
+      const body = await res.json().catch(() => null);
+      const msg =
+        body?.error === "User with this registration number already exists"
+          ? "Já existe um aluno com esta matrícula"
+          : body?.error || "Erro ao cadastrar aluno";
+      setError(msg);
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal
+      title="Novo aluno"
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || !name || !registrationNumber || !birthDate}
+          >
+            {saving ? "Salvando..." : "Salvar"}
+          </Button>
+        </>
+      }
+    >
+      <ModalField
+        label="Nome completo"
+        placeholder="Ex: João da Silva"
+        value={name}
+        onChange={setName}
+      />
+      <ModalField
+        label="Matrícula"
+        placeholder="Ex: 2026101"
+        value={registrationNumber}
+        onChange={setRegistrationNumber}
+      />
+      <ModalField
+        label="Data de nascimento"
+        placeholder="AAAA-MM-DD"
+        value={birthDate}
+        onChange={setBirthDate}
+        type="date"
+      />
+      {error && (
+        <p className="text-sm text-error font-(family-name:--font-inter)]">
+          {error}
+        </p>
+      )}
+    </Modal>
   );
 }
 

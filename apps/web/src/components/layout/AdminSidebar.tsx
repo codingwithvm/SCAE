@@ -5,6 +5,10 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   MapPin,
+  School,
+  UserCheck,
+  Users,
+  GraduationCap,
   FileText,
   Gamepad2,
   ScrollText,
@@ -13,6 +17,10 @@ import {
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Municípios", href: "/admin/municipalities", icon: MapPin },
+  { label: "Escolas", href: "/admin/schools", icon: School },
+  { label: "Professores", href: "/admin/teachers", icon: UserCheck },
+  { label: "Turmas", href: "/admin/classes", icon: Users },
+  { label: "Alunos", href: "/admin/students", icon: GraduationCap },
   { label: "Formulários", href: "/admin/forms", icon: FileText },
   { label: "Simuladores", href: "/admin/simulators", icon: Gamepad2 },
   { label: "Logs", href: "/admin/logs", icon: ScrollText },

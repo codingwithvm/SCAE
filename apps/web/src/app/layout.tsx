@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Poppins, Inter } from "next/font/google";
+import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -19,7 +20,9 @@ const inter = Inter({
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR" className={`${poppins.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        <ToastProvider>{children}</ToastProvider>
+      </body>
     </html>
   );
 }
