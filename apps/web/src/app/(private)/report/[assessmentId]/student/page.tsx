@@ -76,8 +76,11 @@ export default function StudentReportPage({
     const stored = localStorage.getItem("auth_user");
     if (stored) {
       const parsed = JSON.parse(stored) as { role?: string };
-      if (parsed.role === "TEACHER") setBackUrl("/teacher/students");
-      else if (parsed.role === "SCHOOL_MANAGER") setBackUrl("/school/students");
+      if (parsed.role === "TEACHER") {
+        router.replace(`/report/${assessmentId}`);
+        return;
+      }
+      if (parsed.role === "SCHOOL_MANAGER") setBackUrl("/school/students");
     }
 
     fetch(`/api/v1/assessments/${assessmentId}/report`, {
@@ -144,7 +147,7 @@ export default function StudentReportPage({
         </div>
       </header>
 
-      <main className="flex flex-col gap-10 w-full max-w-[800px] mx-auto py-12 px-8">
+      <main className="flex flex-col gap-10 w-full max-w-200 mx-auto py-12 px-8">
         <section className="flex flex-col items-center gap-4 text-center">
           <div
             className="flex h-20 w-20 items-center justify-center rounded-full text-4xl"
@@ -156,7 +159,7 @@ export default function StudentReportPage({
             {profileData.titulo}
           </h1>
           {ludic.tag && (
-            <p className="text-base text-text-secondary font-(family-name:--font-inter)] max-w-[500px]">
+            <p className="text-base text-text-secondary font-(family-name:--font-inter)] max-w-125">
               {ludic.tag}
             </p>
           )}

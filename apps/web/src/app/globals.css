@@ -3,6 +3,19 @@
 @theme {
   /* Cores */
   --color-primary: #1e4fae;
+
+  --animate-slideIn: slideIn 0.2s ease-out;
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
   --color-primary-dark: #123b87;
   --color-primary-light: #4c7fd9;
 

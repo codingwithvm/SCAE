@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
 interface ClassInfo {
   id: string;
@@ -45,7 +46,7 @@ export default function TeacherStudentsPage() {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [students, setStudents] = useState<StudentAssessment[]>([]);
-  const [search, setSearch] = useState("");
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,16 +89,33 @@ export default function TeacherStudentsPage() {
       .finally(() => setLoading(false));
   }, [selectedClassId]);
 
-  const filtered = students.filter((s) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      s.studentName.toLowerCase().includes(q) ||
-      (s.studentRegistration || "").includes(q)
-    );
-  });
+  const filtered = useMemo(() => {
+    if (selectedStudentId === "all") return students;
+    return students.filter((s) => s.studentId === selectedStudentId);
+  }, [students, selectedStudentId]);
 
   const selectedClass = classes.find((c) => c.id === selectedClassId);
+
+  const classOptions = useMemo(
+    () =>
+      classes.map((c) => ({
+        value: c.id,
+        label: `${c.name} (${c.year})`,
+      })),
+    [classes],
+  );
+
+  const studentOptions = useMemo(
+    () => [
+      { value: "all", label: "Todos os alunos" },
+      ...students.map((s) => ({
+        value: s.studentId,
+        label: s.studentName,
+        sublabel: s.studentRegistration || undefined,
+      })),
+    ],
+    [students],
+  );
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -111,32 +129,24 @@ export default function TeacherStudentsPage() {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="relative w-60">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
-            aria-hidden="true"
-          />
-          <input
-            type="text"
-            placeholder="Buscar aluno..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors font-(family-name:--font-inter)]"
-          />
-        </div>
+        <SearchableSelect
+          options={studentOptions}
+          value={selectedStudentId}
+          onChange={setSelectedStudentId}
+          placeholder="Buscar aluno..."
+          className="w-60"
+        />
 
-        <select
+        <SearchableSelect
+          options={classOptions}
           value={selectedClassId}
-          onChange={(e) => setSelectedClassId(e.target.value)}
-          className="h-10 px-3 w-48 rounded-md border border-border bg-background text-sm text-text-primary focus:outline-none focus:border-primary transition-colors font-(family-name:--font-inter)] cursor-pointer"
-        >
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name} ({c.year})
-            </option>
-          ))}
-        </select>
+          onChange={(v) => {
+            setSelectedClassId(v);
+            setSelectedStudentId("all");
+          }}
+          placeholder="Selecionar turma..."
+          className="w-52"
+        />
 
         {selectedClass && (
           <span className="text-sm text-text-secondary font-(family-name:--font-inter)]">

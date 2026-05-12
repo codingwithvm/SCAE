@@ -86,7 +86,7 @@ export default function ManagerReportPage({
     const stored = localStorage.getItem("auth_user");
     if (stored) {
       const parsed = JSON.parse(stored) as { role?: string };
-      if (parsed.role === "TEACHER") setBackUrl("/teacher/students");
+      if (parsed.role === "TEACHER") setBackUrl("/teacher/dashboard");
       else if (parsed.role === "SCHOOL_MANAGER") setBackUrl("/school/students");
     }
 
@@ -171,7 +171,7 @@ export default function ManagerReportPage({
         </div>
       </header>
 
-      <main className="flex flex-col gap-6 w-full max-w-[800px] mx-auto py-12 px-8">
+      <main className="flex flex-col gap-6 w-full max-w-200 mx-auto py-12 px-8">
         {/* Warning */}
         <div className="flex items-start gap-2 rounded-lg bg-[#FFFBEB] border-[1.5px] border-[#FCD34D] px-3.5 py-2.5">
           <ShieldAlert size={16} className="text-[#78350F] mt-0.5 shrink-0" />
@@ -191,7 +191,7 @@ export default function ManagerReportPage({
           }}
         >
           <div
-            className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 text-white text-[13px] font-black"
+            className="w-10.5 h-10.5 rounded-full flex items-center justify-center shrink-0 text-white text-[13px] font-black"
             style={{ backgroundColor: profileData.cor }}
           >
             {(profileData.titulo || data.profile).slice(0, 3)}
@@ -219,7 +219,7 @@ export default function ManagerReportPage({
         {/* Stats grid */}
         <div className="flex flex-col gap-4 rounded-2xl border border-[#EDF2F7] bg-white p-6">
           <div className="flex items-center gap-2.5 pb-2 border-b-[1.5px] border-[#E2E8F0]">
-            <div className="flex items-center justify-center w-[34px] h-[34px] rounded-lg bg-[#F0FDF4]">
+            <div className="flex items-center justify-center w-8.5 h-8.5 rounded-lg bg-[#F0FDF4]">
               <BarChart3 size={18} className="text-[#059669]" />
             </div>
             <h3 className="text-[15px] font-bold text-[#2D2D2D] font-(family-name:--font-poppins)]">

@@ -15,7 +15,7 @@ import {
 } from "@/lib/assessment/report-data";
 
 const MANAGER_ROLES = ["SCHOOL_MANAGER", "MUNICIPAL_MANAGER", "ADMIN"];
-const TEACHER_INSTRUMENTS = ["MEES_PROF", "MCEES_PROF"];
+const TEACHER_INSTRUMENTS = ["MEES_PROF"];
 
 export const GET = withAuth(async (_, decodedTokenPayload, routeContext) => {
   const { id: assessmentId } = await (

@@ -6,6 +6,9 @@ vi.mock("@/lib/prisma", () => ({
       findFirst: vi.fn(),
       findMany: vi.fn(),
     },
+    assessment: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
@@ -18,6 +21,7 @@ import { verifyToken } from "@/lib/auth/jwt";
 import { POST } from "@/app/api/v1/(protected)/assessments/verify/route";
 
 const mockedReleaseFindMany = vi.mocked(prisma.assessmentRelease.findMany);
+const mockedAssessmentFindMany = vi.mocked(prisma.assessment.findMany);
 const mockedVerifyToken = vi.mocked(verifyToken);
 
 function createAuthenticatedRequest(
@@ -97,6 +101,7 @@ describe("POST /api/v1/assessments/verify", () => {
   it("returns allowed with release data when student has active PENDING release", async () => {
     mockedVerifyToken.mockReturnValueOnce(studentTokenPayload);
     mockedReleaseFindMany.mockResolvedValueOnce([existingRelease]);
+    mockedAssessmentFindMany.mockResolvedValueOnce([]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
@@ -117,6 +122,7 @@ describe("POST /api/v1/assessments/verify", () => {
   it("returns allowed false when no active release exists", async () => {
     mockedVerifyToken.mockReturnValueOnce(studentTokenPayload);
     mockedReleaseFindMany.mockResolvedValueOnce([]);
+    mockedAssessmentFindMany.mockResolvedValueOnce([]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
@@ -143,6 +149,7 @@ describe("POST /api/v1/assessments/verify", () => {
       existingRelease,
       secondRelease,
     ]);
+    mockedAssessmentFindMany.mockResolvedValueOnce([]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
@@ -178,6 +185,7 @@ describe("POST /api/v1/assessments/verify", () => {
   it("filters by instrument when provided", async () => {
     mockedVerifyToken.mockReturnValueOnce(studentTokenPayload);
     mockedReleaseFindMany.mockResolvedValueOnce([]);
+    mockedAssessmentFindMany.mockResolvedValueOnce([]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
@@ -200,6 +208,7 @@ describe("POST /api/v1/assessments/verify", () => {
   it("does not filter by instrument when omitted", async () => {
     mockedVerifyToken.mockReturnValueOnce(studentTokenPayload);
     mockedReleaseFindMany.mockResolvedValueOnce([]);
+    mockedAssessmentFindMany.mockResolvedValueOnce([]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",
@@ -222,6 +231,7 @@ describe("POST /api/v1/assessments/verify", () => {
       instrument: "MCEES_PROF" as const,
     };
     mockedReleaseFindMany.mockResolvedValueOnce([teacherRelease]);
+    mockedAssessmentFindMany.mockResolvedValueOnce([]);
 
     const verifyRequest = createAuthenticatedRequest(
       "POST",

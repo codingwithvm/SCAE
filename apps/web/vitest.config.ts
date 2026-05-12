@@ -16,6 +16,10 @@ export default defineConfig({
         __dirname,
         "./tests/__mocks__/server-only.ts",
       ),
+      "next/headers": path.resolve(
+        __dirname,
+        "./tests/__mocks__/next-headers.ts",
+      ),
     },
   },
   resolve: {

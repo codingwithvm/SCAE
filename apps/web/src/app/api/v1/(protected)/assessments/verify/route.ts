@@ -32,18 +32,40 @@ export const POST = withAuth(
       orderBy: { createdAt: "asc" },
     });
 
-    if (activeReleases.length === 0) {
-      return NextResponse.json({ allowed: false, releases: [] });
+    const completedAssessments = await prisma.assessment.findMany({
+      where: {
+        userId: decodedTokenPayload.userId,
+        completedAt: { not: null },
+      },
+      select: { id: true, instrument: true },
+    });
+
+    const completedMap = new Map(
+      completedAssessments.map((a) => [a.instrument, a.id]),
+    );
+    const filtered = activeReleases.filter(
+      (r) => !completedMap.has(r.instrument),
+    );
+
+    if (filtered.length === 0) {
+      const completedId = instrument
+        ? (completedMap.get(instrument) ?? null)
+        : null;
+      return NextResponse.json({
+        allowed: false,
+        releases: [],
+        completedAssessmentId: completedId,
+      });
     }
 
     return NextResponse.json({
       allowed: true,
-      releases: activeReleases.map((r) => ({
+      releases: filtered.map((r) => ({
         releaseId: r.id,
         instrument: r.instrument,
       })),
-      releaseId: activeReleases[0].id,
-      instrument: activeReleases[0].instrument,
+      releaseId: filtered[0].id,
+      instrument: filtered[0].instrument,
     });
   },
   { allowedRoles: [...ALLOWED_ROLES] },

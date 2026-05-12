@@ -45,14 +45,21 @@ export function DatePicker({
   }, []);
 
   function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const value = event.target.value;
+    const raw = event.target.value.replace(/\D/g, "").slice(0, 8);
+    let value = raw;
+    if (raw.length >= 5) {
+      value = `${raw.slice(0, 2)}/${raw.slice(2, 4)}/${raw.slice(4)}`;
+    } else if (raw.length >= 3) {
+      value = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+    }
     setInputValue(value);
 
     const parsedDate = parse(value, "dd/MM/yyyy", new Date());
-    if (isValid(parsedDate)) {
+    if (value.length === 10 && isValid(parsedDate)) {
       setSelected(parsedDate);
       setMonth(parsedDate);
       onDateChange?.(format(parsedDate, "yyyy-MM-dd"));
+      setIsOpen(false);
       return;
     }
 

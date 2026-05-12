@@ -47,14 +47,25 @@ export async function POST(loginRequest: Request) {
       role: staffMember.role,
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       token: authenticationToken,
       user: {
         id: staffMember.id,
         name: staffMember.name,
+        email: staffMember.email,
         role: staffMember.role,
       },
     });
+
+    response.cookies.set("auth_token", authenticationToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch {
     return NextResponse.json(
       { error: "Invalid request body" },

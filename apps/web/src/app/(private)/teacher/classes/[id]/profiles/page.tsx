@@ -2,8 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { PROFILE_DATA } from "@/lib/quiz/profile-data";
 import { type ProfileName } from "@/lib/quiz/profile";
 
@@ -91,17 +90,9 @@ export default function ClassProfilesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        href="/teacher/dashboard"
-        className="flex items-center gap-1.5 text-sm font-medium text-primary hover:opacity-75 transition-opacity no-underline w-fit"
-      >
-        <ArrowLeft size={16} aria-hidden="true" />
-        Voltar para Dashboard
-      </Link>
-
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
-          Perfis — {className}
+          Perfis da turma {className}
         </h1>
         <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
           {assessed.length} avaliados de {students.length} alunos

@@ -10,6 +10,7 @@ import { SchoolSidebar } from "@/components/layout/SchoolSidebar";
 interface AuthenticatedUser {
   id: string;
   name: string | null;
+  email?: string | null;
   role: string;
 }
 
@@ -21,6 +22,8 @@ export default function SchoolLayoutClient({
   const router = useRouter();
   const initialized = useRef(false);
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -41,6 +44,19 @@ export default function SchoolLayoutClient({
     setUser(parsed);
   }, [router]);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   function handleLogout() {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
@@ -54,33 +70,48 @@ export default function SchoolLayoutClient({
 
   return (
     <div className="flex flex-col min-h-screen bg-surface">
-      {/* Header */}
       <header className="flex items-center justify-between h-16 px-8 bg-background border-b border-border-light shrink-0">
         <Link href="/school/dashboard" aria-label="Início — SCAE">
           <Image src="/logo.png" alt="SCAE" width={116} height={32} priority />
         </Link>
 
-        <div className="flex items-center gap-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary shrink-0">
+        <div className="relative" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => setDropdownOpen((prev) => !prev)}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary shrink-0 cursor-pointer transition-opacity hover:opacity-85"
+            aria-label="Menu do usuário"
+          >
             <span className="text-sm font-semibold text-white font-(family-name:--font-poppins)]">
               {initial}
             </span>
-          </div>
-          <span className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
-            {userName}
-          </span>
-          <button
-            type="button"
-            onClick={handleLogout}
-            aria-label="Sair"
-            className="flex items-center justify-center text-error hover:opacity-75 transition-opacity cursor-pointer"
-          >
-            <LogOut size={16} aria-hidden="true" />
           </button>
+
+          {dropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 w-64 rounded-lg border border-border-light bg-background shadow-lg z-50">
+              <div className="px-4 py-3 border-b border-border-light">
+                <p className="text-sm font-medium text-text-primary truncate">
+                  {userName}
+                </p>
+                {user.email && (
+                  <p className="text-xs text-text-muted truncate mt-0.5">
+                    {user.email}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-surface transition-colors cursor-pointer rounded-b-lg"
+              >
+                <LogOut size={15} />
+                Sair
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         <SchoolSidebar onLogout={handleLogout} />
         <main className="flex flex-1 flex-col overflow-y-auto px-10 py-8 gap-6">

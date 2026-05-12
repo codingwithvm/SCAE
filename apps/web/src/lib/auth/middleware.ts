@@ -1,6 +1,7 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth/jwt";
 import type { Role } from "@/generated/prisma/client";
 
@@ -31,14 +32,21 @@ export function withAuth(
   ): Promise<Response> => {
     const authorizationHeader = incomingRequest.headers.get("Authorization");
 
-    if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+    let bearerToken: string | undefined;
+
+    if (authorizationHeader && authorizationHeader.startsWith("Bearer ")) {
+      bearerToken = authorizationHeader.slice(7);
+    } else {
+      const cookieStore = await cookies();
+      bearerToken = cookieStore.get("auth_token")?.value;
+    }
+
+    if (!bearerToken) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 },
       );
     }
-
-    const bearerToken = authorizationHeader.slice(7);
 
     let decodedTokenPayload: DecodedTokenPayload;
 

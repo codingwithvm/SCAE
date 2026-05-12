@@ -7,61 +7,38 @@ import { Button } from "@/components/ui/Button";
 import { Modal, ModalField, ModalSelect } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 
-const BRAZILIAN_STATES = [
-  "AC",
-  "AL",
-  "AM",
-  "AP",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MG",
-  "MS",
-  "MT",
-  "PA",
-  "PB",
-  "PE",
-  "PI",
-  "PR",
-  "RJ",
-  "RN",
-  "RO",
-  "RR",
-  "RS",
-  "SC",
-  "SE",
-  "SP",
-  "TO",
-];
-
-interface MunicipalityRow {
+interface ClassRow {
   id: string;
   name: string;
-  state: string;
-  ibgeCode: string;
+  grade: number;
+  year: number;
+  schoolId: string;
 }
 
-export default function AdminMunicipalitiesPage() {
+interface SchoolOption {
+  id: string;
+  name: string;
+}
+
+export default function AdminClassesPage() {
   const router = useRouter();
   const toast = useToast();
-  const [municipalities, setMunicipalities] = useState<MunicipalityRow[]>([]);
+  const [classes, setClasses] = useState<ClassRow[]>([]);
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [editing, setEditing] = useState<MunicipalityRow | null>(null);
-  const [deleting, setDeleting] = useState<MunicipalityRow | null>(null);
+  const [editing, setEditing] = useState<ClassRow | null>(null);
+  const [deleting, setDeleting] = useState<ClassRow | null>(null);
   const perPage = 20;
 
   function getToken() {
     return localStorage.getItem("auth_token");
   }
 
-  function loadData(pageNum: number, searchQuery: string) {
+  function loadData(pageNum: number) {
     const token = getToken();
     if (!token) {
       router.replace("/login");
@@ -73,66 +50,81 @@ export default function AdminMunicipalitiesPage() {
       page: String(pageNum),
       perPage: String(perPage),
     });
-    if (searchQuery) params.set("search", searchQuery);
 
-    fetch(`/api/v1/municipalities?${params}`, {
+    fetch(`/api/v1/classes?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
       .then((data) => {
-        setMunicipalities(data.data || []);
+        setClasses(data.data || []);
         setTotal(data.total || 0);
       })
       .finally(() => setLoading(false));
   }
 
+  function loadSchools() {
+    const token = getToken();
+    if (!token) return;
+
+    fetch("/api/v1/schools?perPage=200", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => setSchools(data.data || []));
+  }
+
   useEffect(() => {
-    loadData(page, search);
+    loadData(page);
+    loadSchools();
   }, [page]);
 
-  function handleSearch(value: string) {
-    setSearch(value);
-    setPage(1);
-    loadData(1, value);
-  }
-
   function reload() {
-    loadData(page, search);
+    loadData(page);
   }
 
-  async function handleDelete(m: MunicipalityRow) {
+  async function handleDelete(c: ClassRow) {
     const token = getToken();
-    const res = await fetch(`/api/v1/municipalities/${m.id}`, {
+    const res = await fetch(`/api/v1/classes/${c.id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
 
     if (res.ok) {
-      toast.success("Município excluído com sucesso");
+      toast.success("Turma excluída com sucesso");
       setDeleting(null);
       reload();
     } else {
       const body = await res.json().catch(() => null);
-      toast.error(body?.error || "Erro ao excluir município");
+      toast.error(body?.error || "Erro ao excluir turma");
     }
   }
 
   const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const schoolMap = new Map(schools.map((s) => [s.id, s.name]));
+
+  const filtered = classes.filter((c) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      c.name.toLowerCase().includes(q) ||
+      (schoolMap.get(c.schoolId) || "").toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold text-text-primary font-(family-name:--font-poppins)]">
-            Municípios
+            Turmas
           </h1>
           <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
-            {total} municípios cadastrados
+            {total} turmas cadastradas
           </p>
         </div>
         <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
           <Plus size={16} />
-          Novo município
+          Nova turma
         </Button>
       </div>
 
@@ -144,9 +136,9 @@ export default function AdminMunicipalitiesPage() {
         />
         <input
           type="text"
-          placeholder="Buscar município..."
+          placeholder="Buscar turma..."
           value={search}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           className="w-full h-10 pl-9 pr-4 rounded-md border border-border bg-background text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors font-(family-name:--font-inter)]"
         />
       </div>
@@ -162,41 +154,47 @@ export default function AdminMunicipalitiesPage() {
               Nome
             </span>
             <span className="w-20 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
-              UF
+              Série
             </span>
-            <span className="w-32 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
-              Código IBGE
+            <span className="w-20 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
+              Ano
+            </span>
+            <span className="w-44 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)]">
+              Escola
             </span>
             <span className="w-24 text-xs font-semibold text-text-secondary font-(family-name:--font-inter)] text-right">
               Ações
             </span>
           </div>
 
-          {municipalities.length === 0 ? (
+          {filtered.length === 0 ? (
             <div className="flex items-center justify-center py-10">
               <p className="text-sm text-text-secondary">
-                Nenhum município encontrado.
+                Nenhuma turma encontrada.
               </p>
             </div>
           ) : (
-            municipalities.map((m) => (
+            filtered.map((c) => (
               <div
-                key={m.id}
+                key={c.id}
                 className="flex items-center gap-2 px-4 py-3 border-t border-border-light"
               >
-                <span className="flex-1 text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
-                  {m.name}
+                <span className="flex-1 text-sm font-medium text-text-primary font-(family-name:--font-inter)] truncate">
+                  {c.name}
                 </span>
                 <span className="w-20 text-sm text-text-secondary font-(family-name:--font-inter)]">
-                  {m.state}
+                  {c.grade}º ano
                 </span>
-                <span className="w-32 text-sm text-text-secondary font-(family-name:--font-inter)]">
-                  {m.ibgeCode}
+                <span className="w-20 text-sm text-text-secondary font-(family-name:--font-inter)]">
+                  {c.year}
+                </span>
+                <span className="w-44 text-sm text-text-secondary font-(family-name:--font-inter)] truncate">
+                  {schoolMap.get(c.schoolId) || "—"}
                 </span>
                 <div className="w-24 flex items-center justify-end gap-1">
                   <button
                     type="button"
-                    onClick={() => setEditing(m)}
+                    onClick={() => setEditing(c)}
                     className="p-1.5 rounded text-text-secondary hover:text-primary hover:bg-surface transition-colors cursor-pointer"
                     aria-label="Editar"
                   >
@@ -204,7 +202,7 @@ export default function AdminMunicipalitiesPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setDeleting(m)}
+                    onClick={() => setDeleting(c)}
                     className="p-1.5 rounded text-text-secondary hover:text-error hover:bg-surface transition-colors cursor-pointer"
                     aria-label="Excluir"
                   >
@@ -242,7 +240,8 @@ export default function AdminMunicipalitiesPage() {
       )}
 
       {showCreate && (
-        <MunicipalityModal
+        <ClassModal
+          schools={schools}
           onClose={() => setShowCreate(false)}
           onSaved={() => {
             setShowCreate(false);
@@ -252,8 +251,9 @@ export default function AdminMunicipalitiesPage() {
       )}
 
       {editing && (
-        <MunicipalityModal
+        <ClassModal
           initial={editing}
+          schools={schools}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
@@ -264,7 +264,7 @@ export default function AdminMunicipalitiesPage() {
 
       {deleting && (
         <Modal
-          title="Excluir município"
+          title="Excluir turma"
           onClose={() => setDeleting(null)}
           footer={
             <>
@@ -286,7 +286,7 @@ export default function AdminMunicipalitiesPage() {
           }
         >
           <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
-            Tem certeza que deseja excluir o município{" "}
+            Tem certeza que deseja excluir a turma{" "}
             <strong>{deleting.name}</strong>? Esta ação não pode ser desfeita.
           </p>
         </Modal>
@@ -295,32 +295,35 @@ export default function AdminMunicipalitiesPage() {
   );
 }
 
-function MunicipalityModal({
+function ClassModal({
   initial,
+  schools,
   onClose,
   onSaved,
 }: {
-  initial?: MunicipalityRow;
+  initial?: ClassRow;
+  schools: SchoolOption[];
   onClose: () => void;
   onSaved: () => void;
 }) {
   const toast = useToast();
   const isEdit = !!initial;
   const [name, setName] = useState(initial?.name || "");
-  const [state, setState] = useState(initial?.state || "");
-  const [ibgeCode, setIbgeCode] = useState(initial?.ibgeCode || "");
+  const [grade, setGrade] = useState(initial ? String(initial.grade) : "");
+  const [year, setYear] = useState(
+    initial ? String(initial.year) : String(new Date().getFullYear()),
+  );
+  const [schoolId, setSchoolId] = useState(initial?.schoolId || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
-    if (!name || !state || !ibgeCode) return;
+    if (!name || !grade || !year || !schoolId) return;
     setSaving(true);
     setError(null);
 
     const token = localStorage.getItem("auth_token");
-    const url = isEdit
-      ? `/api/v1/municipalities/${initial.id}`
-      : "/api/v1/municipalities";
+    const url = isEdit ? `/api/v1/classes/${initial.id}` : "/api/v1/classes";
 
     const res = await fetch(url, {
       method: isEdit ? "PUT" : "POST",
@@ -328,30 +331,31 @@ function MunicipalityModal({
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, state, ibgeCode }),
+      body: JSON.stringify({
+        name,
+        grade: parseInt(grade),
+        year: parseInt(year),
+        schoolId,
+      }),
     });
 
     if (res.ok) {
       toast.success(
         isEdit
-          ? "Município atualizado com sucesso"
-          : "Município cadastrado com sucesso",
+          ? "Turma atualizada com sucesso"
+          : "Turma cadastrada com sucesso",
       );
       onSaved();
     } else {
       const body = await res.json().catch(() => null);
-      const msg =
-        body?.error === "Municipality with this IBGE code already exists"
-          ? "Já existe um município com este código IBGE"
-          : body?.error || "Erro ao salvar município";
-      setError(msg);
+      setError(body?.error || "Erro ao salvar turma");
       setSaving(false);
     }
   }
 
   return (
     <Modal
-      title={isEdit ? "Editar município" : "Novo município"}
+      title={isEdit ? "Editar turma" : "Nova turma"}
       onClose={onClose}
       footer={
         <>
@@ -362,7 +366,7 @@ function MunicipalityModal({
             variant="primary"
             size="sm"
             onClick={handleSave}
-            disabled={saving || !name || !state || !ibgeCode}
+            disabled={saving || !name || !grade || !year || !schoolId}
           >
             {saving ? "Salvando..." : "Salvar"}
           </Button>
@@ -370,23 +374,33 @@ function MunicipalityModal({
       }
     >
       <ModalField
-        label="Nome"
-        placeholder="Ex: São Paulo"
+        label="Nome da turma"
+        placeholder="Ex: 1º Ano A"
         value={name}
         onChange={setName}
       />
       <ModalSelect
-        label="UF"
-        placeholder="Selecione o estado..."
-        value={state}
-        onChange={setState}
-        options={BRAZILIAN_STATES.map((s) => ({ value: s, label: s }))}
+        label="Série"
+        placeholder="Selecione a série..."
+        value={grade}
+        onChange={setGrade}
+        options={Array.from({ length: 9 }, (_, i) => ({
+          value: String(i + 1),
+          label: `${i + 1}º ano`,
+        }))}
       />
       <ModalField
-        label="Código IBGE"
-        placeholder="Ex: 3550308"
-        value={ibgeCode}
-        onChange={setIbgeCode}
+        label="Ano letivo"
+        placeholder="2026"
+        value={year}
+        onChange={setYear}
+      />
+      <ModalSelect
+        label="Escola"
+        placeholder="Selecione a escola..."
+        value={schoolId}
+        onChange={setSchoolId}
+        options={schools.map((s) => ({ value: s.id, label: s.name }))}
       />
       {error && (
         <p className="text-sm text-error font-(family-name:--font-inter)]">

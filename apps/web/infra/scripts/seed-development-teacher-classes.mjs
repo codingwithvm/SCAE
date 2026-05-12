@@ -16,7 +16,42 @@ const developmentTeacherClasses = [
   },
   {
     teacherEmail: "professor@scae.dev",
+    className: "2º Ano A",
+    classYear: 2026,
+  },
+  {
+    teacherEmail: "professor@scae.dev",
+    className: "3º Ano A",
+    classYear: 2026,
+  },
+  {
+    teacherEmail: "professor@scae.dev",
+    className: "4º Ano A",
+    classYear: 2026,
+  },
+  {
+    teacherEmail: "professor2@scae.dev",
     className: "5º Ano A",
+    classYear: 2026,
+  },
+  {
+    teacherEmail: "professor2@scae.dev",
+    className: "6º Ano A",
+    classYear: 2026,
+  },
+  {
+    teacherEmail: "professor2@scae.dev",
+    className: "7º Ano A",
+    classYear: 2026,
+  },
+  {
+    teacherEmail: "professor2@scae.dev",
+    className: "8º Ano A",
+    classYear: 2026,
+  },
+  {
+    teacherEmail: "professor2@scae.dev",
+    className: "9º Ano A",
     classYear: 2026,
   },
 ];
@@ -26,15 +61,15 @@ seedDevelopmentTeacherClasses();
 async function seedDevelopmentTeacherClasses() {
   await databaseClient.connect();
 
-  for (const developmentTeacherClass of developmentTeacherClasses) {
-    await insertDevelopmentTeacherClass(developmentTeacherClass);
+  for (const entry of developmentTeacherClasses) {
+    await insertDevelopmentTeacherClass(entry);
   }
 
   await databaseClient.end();
 
-  for (const developmentTeacherClass of developmentTeacherClasses) {
+  for (const entry of developmentTeacherClasses) {
     console.log(
-      `> teacher "${developmentTeacherClass.teacherEmail}" -> class "${developmentTeacherClass.className}" (${developmentTeacherClass.classYear})`,
+      `> teacher "${entry.teacherEmail}" -> class "${entry.className}" (${entry.classYear})`,
     );
   }
 }
@@ -44,12 +79,16 @@ async function insertDevelopmentTeacherClass(developmentTeacherClass) {
     const insertTeacherClassQuery = {
       text: `
         INSERT INTO scae_teacher_classes ("teacherId", "classId")
-        SELECT user_reference.id, class_reference.id
-        FROM scae_users user_reference
-        INNER JOIN scae_classes class_reference
-          ON class_reference.name = $1 AND class_reference.year = $2
-        WHERE user_reference.email = $3
-        ON CONFLICT DO NOTHING;
+        SELECT u.id, c.id
+        FROM scae_users u
+        INNER JOIN scae_classes c
+          ON c.name = $1 AND c.year = $2
+        WHERE u.email = $3
+          AND NOT EXISTS (
+            SELECT 1 FROM scae_teacher_classes tc
+            WHERE tc."teacherId" = u.id AND tc."classId" = c.id
+          )
+        LIMIT 1;
       `,
       values: [
         developmentTeacherClass.className,

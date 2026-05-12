@@ -4,7 +4,7 @@ import { withAuth } from "@/lib/auth/middleware";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
 
-const ALLOWED_ROLES = ["ADMIN"] as const;
+const ALLOWED_ROLES = ["ADMIN", "SCHOOL_MANAGER"] as const;
 const VALID_ROLES: Role[] = [
   "STUDENT",
   "TEACHER",
@@ -51,7 +51,7 @@ async function ensureMunicipalityExists(municipalityId: string) {
 }
 
 export const POST = withAuth(
-  async (createRequest) => {
+  async (createRequest, decodedTokenPayload) => {
     const createRequestBody = await createRequest.json();
     const {
       role,
@@ -76,6 +76,33 @@ export const POST = withAuth(
         { error: "role must be a valid system role" },
         { status: 400 },
       );
+    }
+
+    if (
+      decodedTokenPayload.role === "SCHOOL_MANAGER" &&
+      role !== "TEACHER" &&
+      role !== "STUDENT"
+    ) {
+      return NextResponse.json(
+        { error: "School managers can only create teachers and students" },
+        { status: 403 },
+      );
+    }
+
+    let resolvedSchoolId: string | null = schoolId ?? null;
+    let resolvedMunicipalityId: string | null = municipalityId ?? null;
+
+    if (decodedTokenPayload.role === "SCHOOL_MANAGER") {
+      const manager = await prisma.user.findUnique({
+        where: { id: decodedTokenPayload.userId },
+        select: {
+          schoolId: true,
+          school: { select: { municipalityId: true } },
+        },
+      });
+
+      resolvedSchoolId = manager?.schoolId ?? null;
+      resolvedMunicipalityId = manager?.school?.municipalityId ?? null;
     }
 
     let parsedBirthDate: Date | null = null;
@@ -110,8 +137,8 @@ export const POST = withAuth(
       passwordHash = await hashPassword(password);
     }
 
-    if (schoolId) {
-      const existingSchool = await ensureSchoolExists(schoolId);
+    if (resolvedSchoolId) {
+      const existingSchool = await ensureSchoolExists(resolvedSchoolId);
 
       if (!existingSchool) {
         return NextResponse.json(
@@ -121,9 +148,10 @@ export const POST = withAuth(
       }
     }
 
-    if (municipalityId) {
-      const existingMunicipality =
-        await ensureMunicipalityExists(municipalityId);
+    if (resolvedMunicipalityId) {
+      const existingMunicipality = await ensureMunicipalityExists(
+        resolvedMunicipalityId,
+      );
 
       if (!existingMunicipality) {
         return NextResponse.json(
@@ -142,8 +170,8 @@ export const POST = withAuth(
           registrationNumber: registrationNumber ?? null,
           birthDate: parsedBirthDate,
           passwordHash,
-          schoolId: schoolId ?? null,
-          municipalityId: municipalityId ?? null,
+          schoolId: resolvedSchoolId,
+          municipalityId: resolvedMunicipalityId,
         },
       });
 
