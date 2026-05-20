@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import {
+  Search,
+  Loader2,
+  Plus,
+  Pencil,
+  Trash2,
+  Upload,
+  Download,
+  FileSpreadsheet,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal, ModalField, ModalSelect } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
@@ -33,6 +44,7 @@ export default function AdminStudentsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<StudentRow | null>(null);
   const [deleting, setDeleting] = useState<StudentRow | null>(null);
+  const [showImport, setShowImport] = useState(false);
   const perPage = 20;
 
   function getToken() {
@@ -130,10 +142,24 @@ export default function AdminStudentsPage() {
             {total} alunos cadastrados
           </p>
         </div>
-        <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
-          <Plus size={16} />
-          Novo aluno
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowImport(true)}
+          >
+            <Upload size={16} />
+            Importar planilha
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowCreate(true)}
+          >
+            <Plus size={16} />
+            Novo aluno
+          </Button>
+        </div>
       </div>
 
       <div className="relative w-80">
@@ -306,6 +332,17 @@ export default function AdminStudentsPage() {
           </p>
         </Modal>
       )}
+
+      {showImport && (
+        <ImportModal
+          schools={schools}
+          onClose={() => setShowImport(false)}
+          onImported={() => {
+            setShowImport(false);
+            reload();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -450,6 +487,228 @@ function StudentModal({
           {error}
         </p>
       )}
+    </Modal>
+  );
+}
+
+interface ImportError {
+  row: number;
+  field: string;
+  message: string;
+}
+
+function ImportModal({
+  schools,
+  onClose,
+  onImported,
+}: {
+  schools: SchoolOption[];
+  onClose: () => void;
+  onImported: () => void;
+}) {
+  const toast = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [schoolId, setSchoolId] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [result, setResult] = useState<{
+    created: number;
+    total: number;
+    errors: ImportError[];
+  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] || null;
+    setSelectedFile(file);
+    setResult(null);
+    setError(null);
+  }
+
+  async function handleDownloadTemplate() {
+    const token = localStorage.getItem("auth_token");
+
+    const res = await fetch("/api/v1/users/import/template", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      toast.error("Erro ao baixar modelo");
+      return;
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "modelo_importacao_alunos.xlsx";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleUpload() {
+    if (!selectedFile || !schoolId) return;
+    setUploading(true);
+    setError(null);
+    setResult(null);
+
+    const token = localStorage.getItem("auth_token");
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("schoolId", schoolId);
+
+    const res = await fetch("/api/v1/users/import", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+
+    const body = await res.json().catch(() => null);
+
+    if (res.status === 201 || res.status === 207) {
+      setResult(body);
+      if (body.created > 0) {
+        toast.success(`${body.created} aluno(s) importado(s) com sucesso`);
+      }
+    } else {
+      if (body?.errors && body.errors.length > 0) {
+        setResult(body);
+      } else {
+        setError(body?.error || "Erro ao importar planilha");
+      }
+    }
+
+    setUploading(false);
+  }
+
+  const hasResult = result !== null;
+  const hasErrors = result && result.errors.length > 0;
+
+  return (
+    <Modal
+      title="Importar alunos via planilha"
+      onClose={onClose}
+      footer={
+        hasResult && result.created > 0 ? (
+          <Button variant="primary" size="sm" onClick={onImported}>
+            Fechar
+          </Button>
+        ) : (
+          <>
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleUpload}
+              disabled={uploading || !selectedFile || !schoolId}
+            >
+              {uploading ? "Importando..." : "Importar"}
+            </Button>
+          </>
+        )
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3 rounded-lg border border-border-light bg-surface px-4 py-3">
+          <FileSpreadsheet size={20} className="text-primary shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
+              Modelo de planilha
+            </p>
+            <p className="text-xs text-text-secondary font-(family-name:--font-inter)]">
+              Baixe o modelo com as colunas: Nome, Matrícula, Data de Nascimento
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleDownloadTemplate}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+          >
+            <Download size={14} />
+            Baixar
+          </button>
+        </div>
+
+        <ModalSelect
+          label="Escola"
+          placeholder="Selecione a escola..."
+          value={schoolId}
+          onChange={(v) => {
+            setSchoolId(v);
+            setResult(null);
+            setError(null);
+          }}
+          options={schools.map((s) => ({ value: s.id, label: s.name }))}
+        />
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-text-primary font-(family-name:--font-inter)]">
+            Arquivo Excel
+          </label>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center justify-center gap-2 h-20 rounded-md border-2 border-dashed border-border bg-surface/50 text-sm text-text-secondary hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
+          >
+            <Upload size={16} />
+            {selectedFile ? selectedFile.name : "Clique para selecionar .xlsx"}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </div>
+
+        {error && (
+          <div className="flex items-start gap-2 rounded-md border border-error/30 bg-error/5 px-3 py-2.5">
+            <AlertCircle size={16} className="text-error shrink-0 mt-0.5" />
+            <p className="text-sm text-error font-(family-name:--font-inter)]">
+              {error}
+            </p>
+          </div>
+        )}
+
+        {hasResult && (
+          <div className="flex flex-col gap-3">
+            {result.created > 0 && (
+              <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-3 py-2.5">
+                <CheckCircle2 size={16} className="text-green-600 shrink-0" />
+                <p className="text-sm text-green-700 font-(family-name:--font-inter)]">
+                  {result.created} de {result.total} aluno(s) importado(s) com
+                  sucesso
+                </p>
+              </div>
+            )}
+
+            {hasErrors && (
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium text-error font-(family-name:--font-inter)]">
+                  {result.errors.length} erro(s) encontrado(s):
+                </p>
+                <div className="max-h-40 overflow-y-auto rounded-md border border-error/20 bg-error/5">
+                  {result.errors.map((err, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-2 px-3 py-2 border-b border-error/10 last:border-b-0"
+                    >
+                      <span className="text-xs font-mono text-error/70 shrink-0 mt-0.5">
+                        Linha {err.row}
+                      </span>
+                      <span className="text-xs text-error font-(family-name:--font-inter)]">
+                        {err.field}: {err.message}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </Modal>
   );
 }
