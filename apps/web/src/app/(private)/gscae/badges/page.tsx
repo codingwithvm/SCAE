@@ -76,7 +76,7 @@ export default function BadgesPage() {
 
     const user = JSON.parse(storedUser);
     if (user.role !== "STUDENT") {
-      router.replace("/login");
+      router.replace("/unauthorized");
       return;
     }
     setUserName(user.name ?? "Aluno");
