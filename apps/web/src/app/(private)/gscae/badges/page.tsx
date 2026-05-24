@@ -81,7 +81,10 @@ export default function BadgesPage() {
     }
     setUserName(user.name ?? "Aluno");
 
-    fetch("/api/v1/gscae/badges")
+    const token = localStorage.getItem("auth_token");
+    fetch("/api/v1/gscae/badges", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then((res) => res.json())
       .then((json) => {
         setData(json);
@@ -93,6 +96,7 @@ export default function BadgesPage() {
   function handleLogout() {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
+    localStorage.removeItem("quiz_profile");
     router.replace("/login");
   }
 
@@ -108,48 +112,97 @@ export default function BadgesPage() {
     data?.badges.filter((b) => b.category === "scae_level") ?? [];
   const milestoneBadges =
     data?.badges.filter((b) => b.category === "milestone") ?? [];
+  const earnedCount = data?.summary.earned ?? 0;
+  const totalCount = data?.summary.total ?? 0;
+  const progressPercent =
+    totalCount > 0 ? Math.round((earnedCount / totalCount) * 100) : 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <Header variant="app" userName={userName} onLogout={handleLogout} />
 
-      <main className="flex-1 px-8 py-8">
-        <div className="mx-auto max-w-4xl">
+      <main className="flex flex-1 flex-col items-center gap-6 px-20 py-8">
+        <div className="flex w-full flex-col gap-6">
           <Link
             href="/dashboard"
-            className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors no-underline"
+            className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors no-underline font-(family-name:--font-inter)]"
           >
             <ArrowLeft size={16} />
             Voltar ao Dashboard
           </Link>
 
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-text-primary">
+          <div className="flex w-full flex-col gap-1">
+            <h1 className="text-2xl font-semibold text-text-primary font-(family-name:--font-poppins)]">
               Minhas Conquistas
             </h1>
-            <p className="mt-1 text-sm text-text-secondary">
-              {data?.summary.earned ?? 0} de {data?.summary.total ?? 0} badges
-              conquistados
+            <p className="text-base text-text-secondary font-(family-name:--font-inter)]">
+              Acompanhe seu progresso e desbloqueie novos badges.
             </p>
           </div>
 
-          <div className="mb-4 flex gap-3">
-            <div className="rounded-lg border border-border-light bg-background px-4 py-3">
-              <p className="text-xs text-text-secondary">Nível SCAE</p>
-              <p className="text-lg font-bold text-primary">
-                {data?.summary.byCategory.scae_level ?? 0}
-              </p>
+          <div className="flex w-full gap-4">
+            <div className="flex flex-1 items-center gap-4 rounded-2xl border border-border-light bg-background p-6 shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-cta">
+                <Trophy size={20} className="text-text-on-cta" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-text-primary font-(family-name:--font-poppins)]">
+                  {earnedCount}
+                </p>
+                <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+                  Badges conquistados
+                </p>
+              </div>
             </div>
-            <div className="rounded-lg border border-border-light bg-background px-4 py-3">
-              <p className="text-xs text-text-secondary">Marcos</p>
-              <p className="text-lg font-bold text-primary">
-                {data?.summary.byCategory.milestone ?? 0}
-              </p>
+
+            <div className="flex flex-1 items-center gap-4 rounded-2xl border border-border-light bg-background p-6 shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-cta">
+                <Star size={20} className="text-text-on-cta" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-text-primary font-(family-name:--font-poppins)]">
+                  {data?.summary.byCategory.scae_level ?? 0}
+                </p>
+                <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+                  Níveis SCAE
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-1 items-center gap-4 rounded-2xl border border-border-light bg-background p-6 shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-cta">
+                <Award size={20} className="text-text-on-cta" />
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-text-primary font-(family-name:--font-poppins)]">
+                  {data?.summary.byCategory.milestone ?? 0}
+                </p>
+                <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+                  Marcos alcançados
+                </p>
+              </div>
             </div>
           </div>
 
-          <section className="mb-8">
-            <h2 className="mb-4 text-lg font-semibold text-text-primary">
+          <div className="rounded-2xl border border-border-light bg-background p-6 shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-medium text-text-primary font-(family-name:--font-poppins)]">
+                Progresso geral
+              </p>
+              <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+                {earnedCount} de {totalCount}
+              </p>
+            </div>
+            <div className="h-2.5 w-full rounded-full bg-surface">
+              <div
+                className="h-2.5 rounded-full bg-cta transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          <section className="flex flex-col gap-4">
+            <h2 className="text-xl font-semibold text-text-primary font-(family-name:--font-poppins)]">
               Níveis SCAE
             </h2>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -159,8 +212,8 @@ export default function BadgesPage() {
             </div>
           </section>
 
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-text-primary">
+          <section className="flex flex-col gap-4">
+            <h2 className="text-xl font-semibold text-text-primary font-(family-name:--font-poppins)]">
               Marcos e Conquistas
             </h2>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -177,14 +230,16 @@ export default function BadgesPage() {
 
 function BadgeCard({ badge }: { badge: Badge }) {
   const IconComponent = ICON_MAP[badge.icon] ?? Star;
-  const colorClasses = badge.earned ? badge.color : "bg-gray-100 text-gray-400";
+  const colorClasses = badge.earned
+    ? badge.color
+    : "bg-surface text-text-muted";
 
   return (
     <div
-      className={`flex flex-col items-center rounded-xl border p-4 text-center transition-all ${
+      className={`flex flex-col items-center rounded-2xl border p-5 text-center transition-all ${
         badge.earned
-          ? "border-border-light bg-background shadow-sm"
-          : "border-border-light/50 bg-background/50 opacity-60"
+          ? "border-border-light bg-background shadow-[0_2px_8px_rgba(30,79,174,0.08)]"
+          : "border-border-light bg-background opacity-50"
       }`}
     >
       <div
@@ -193,13 +248,17 @@ function BadgeCard({ badge }: { badge: Badge }) {
         <IconComponent size={24} />
       </div>
       <p
-        className={`text-sm font-semibold ${badge.earned ? "text-text-primary" : "text-text-secondary"}`}
+        className={`text-sm font-semibold font-(family-name:--font-poppins)] ${
+          badge.earned ? "text-text-primary" : "text-text-secondary"
+        }`}
       >
         {badge.name}
       </p>
-      <p className="mt-1 text-xs text-text-secondary">{badge.description}</p>
+      <p className="mt-1 text-xs text-text-secondary font-(family-name:--font-inter)]">
+        {badge.description}
+      </p>
       {badge.earned && badge.earnedAt && (
-        <p className="mt-2 text-[11px] text-text-secondary/60">
+        <p className="mt-2 text-xs text-text-muted font-(family-name:--font-inter)]">
           {new Date(badge.earnedAt).toLocaleDateString("pt-BR", {
             day: "2-digit",
             month: "short",
