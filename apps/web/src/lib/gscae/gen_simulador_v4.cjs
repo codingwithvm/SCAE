@@ -740,6 +740,7 @@ function renderPhase(phaseIdx) {
     }
     document.getElementById('save-reflection-btn').style.display = 'inline-flex';
     document.getElementById('next-btn').style.display = 'inline-flex';
+    document.getElementById('next-btn').onclick = nextAction;
     document.getElementById('next-btn').textContent = 'Próxima Fase';
     document.getElementById('next-btn').appendChild(arrowIcon());
     setCael(PHASE_SPEECHES[2]);
@@ -748,6 +749,7 @@ function renderPhase(phaseIdx) {
     document.getElementById('stage-content-inner').style.display = 'block';
     document.getElementById('stage-content-inner').innerHTML = phase.content;
     document.getElementById('next-btn').style.display = 'inline-flex';
+    document.getElementById('next-btn').onclick = nextAction;
     const isLast = phaseIdx === 4;
     const isLastLevel = S.levelIdx === C.levels.length - 1;
     document.getElementById('next-btn').textContent =

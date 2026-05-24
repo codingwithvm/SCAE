@@ -17,16 +17,15 @@ const SCAE_TO_SPAECE: Record<string, string> = {
   RESOLVE: "Adequado",
 };
 
-interface ResponsePayload {
+interface SimulatorResponse {
   questionId: string;
-  questionText: string;
-  level: number;
-  selectedOption: string;
-  correctOption: string;
+  stage: string;
+  selected: string;
+  correct: string;
   isCorrect: boolean;
-  points: number;
-  spaeceDescriptor: string;
-  responseTimeMs: number;
+  concept_tag?: string | null;
+  spaece_descriptor?: string | null;
+  answeredAt?: number;
 }
 
 interface CompleteBody {
@@ -34,7 +33,7 @@ interface CompleteBody {
   scores: Record<string, number>;
   reflections: Record<string, string>;
   timeSpentSecs: number;
-  responses: ResponsePayload[];
+  responses: SimulatorResponse[];
 }
 
 export const POST = withAuth(async (request, decodedTokenPayload) => {
@@ -81,14 +80,14 @@ export const POST = withAuth(async (request, decodedTokenPayload) => {
     data: responses.map((r) => ({
       sessionId,
       questionId: r.questionId,
-      questionText: r.questionText,
-      level: r.level,
-      selectedOption: r.selectedOption,
-      correctOption: r.correctOption,
+      questionText: r.questionId,
+      level: SCAE_LEVEL_ORDER[r.stage] ?? 1,
+      selectedOption: r.selected,
+      correctOption: r.correct,
       isCorrect: r.isCorrect,
-      points: r.points,
-      spaeceDescriptor: r.spaeceDescriptor,
-      responseTimeMs: r.responseTimeMs,
+      points: r.isCorrect ? 1 : 0,
+      spaeceDescriptor: r.spaece_descriptor ?? null,
+      responseTimeMs: null,
     })),
   });
 
