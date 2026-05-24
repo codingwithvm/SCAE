@@ -14,7 +14,6 @@ const scripts = [
   "seed-development-releases.mjs",
   "seed-development-assessments.mjs",
   "seed-development-notifications.mjs",
-  "seed-development-badges.mjs",
 ];
 
 console.log("=== SCAE Development Seed ===\n");

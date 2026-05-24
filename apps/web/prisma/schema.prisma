@@ -43,7 +43,6 @@ model User {
   assessments     Assessment[]
   reportsSent     ReportDelivery[]    @relation("SentByUser")
   notifications   Notification[]
-  studentBadges   StudentBadge[]
 
   @@index([email])
   @@index([registrationNumber])
@@ -264,33 +263,4 @@ model Notification {
   @@index([userId, isRead])
   @@index([createdAt])
   @@map("scae_notifications")
-}
-
-model Badge {
-  id          String @id
-  name        String @db.VarChar(100)
-  description String
-  category    String @db.VarChar(20)
-  icon        String @db.VarChar(50)
-  color       String @db.VarChar(100)
-  criteria    Json?
-
-  studentBadges StudentBadge[]
-
-  @@map("scae_badges")
-}
-
-model StudentBadge {
-  id       String   @id @default(uuid())
-  userId   String
-  badgeId  String
-  context  String?
-  earnedAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, badgeId, context])
-  @@index([userId])
-  @@map("scae_student_badges")
 }
