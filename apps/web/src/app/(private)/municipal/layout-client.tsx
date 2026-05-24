@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { MunicipalSidebar } from "@/components/layout/MunicipalSidebar";
+import { NotificationsBell } from "@/components/gscae/NotificationsBell";
 
 interface AuthenticatedUser {
   id: string;
@@ -75,40 +76,43 @@ export default function MunicipalLayoutClient({
           <Image src="/logo.png" alt="SCAE" width={116} height={32} priority />
         </Link>
 
-        <div className="relative" ref={dropdownRef}>
-          <button
-            type="button"
-            onClick={() => setDropdownOpen((prev) => !prev)}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary shrink-0 cursor-pointer transition-opacity hover:opacity-85"
-            aria-label="Menu do usuário"
-          >
-            <span className="text-sm font-semibold text-white font-(family-name:--font-poppins)]">
-              {initial}
-            </span>
-          </button>
+        <div className="flex items-center gap-4">
+          <NotificationsBell />
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setDropdownOpen((prev) => !prev)}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary shrink-0 cursor-pointer transition-opacity hover:opacity-85"
+              aria-label="Menu do usuário"
+            >
+              <span className="text-sm font-semibold text-white font-(family-name:--font-poppins)]">
+                {initial}
+              </span>
+            </button>
 
-          {dropdownOpen && (
-            <div className="absolute right-0 top-full mt-2 w-64 rounded-lg border border-border-light bg-background shadow-lg z-50">
-              <div className="px-4 py-3 border-b border-border-light">
-                <p className="text-sm font-medium text-text-primary truncate">
-                  {userName}
-                </p>
-                {user.email && (
-                  <p className="text-xs text-text-muted truncate mt-0.5">
-                    {user.email}
+            {dropdownOpen && (
+              <div className="absolute right-0 top-full mt-2 w-64 rounded-lg border border-border-light bg-background shadow-lg z-50">
+                <div className="px-4 py-3 border-b border-border-light">
+                  <p className="text-sm font-medium text-text-primary truncate">
+                    {userName}
                   </p>
-                )}
+                  {user.email && (
+                    <p className="text-xs text-text-muted truncate mt-0.5">
+                      {user.email}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-surface transition-colors cursor-pointer rounded-b-lg"
+                >
+                  <LogOut size={15} />
+                  Sair
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-surface transition-colors cursor-pointer rounded-b-lg"
-              >
-                <LogOut size={15} />
-                Sair
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
