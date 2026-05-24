@@ -13,6 +13,8 @@ export default defineConfig([
       "**/build/**",
       "**/next-env.d.ts",
       "**/src/generated/**",
+      "plans/**",
+      "G-SCAE_features_atualizada/**",
     ],
   },
   js.configs.recommended,
