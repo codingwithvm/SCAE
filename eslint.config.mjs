@@ -15,6 +15,7 @@ export default defineConfig([
       "**/src/generated/**",
       "plans/**",
       "G-SCAE_features_atualizada/**",
+      "**/*.cjs",
     ],
   },
   js.configs.recommended,
