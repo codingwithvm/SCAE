@@ -113,6 +113,28 @@ describe("GET /api/v1/gscae/badges", () => {
     expect(response.status).toBe(401);
   });
 
+  it("should return 403 for non-student roles", async () => {
+    const teacherPayload = { ...studentPayload, role: "TEACHER" as const };
+    mockedVerifyToken.mockReturnValue(teacherPayload);
+
+    const request = authRequest();
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(data.error).toBe("Forbidden");
+  });
+
+  it("should return 403 for admin role", async () => {
+    const adminPayload = { ...studentPayload, role: "ADMIN" as const };
+    mockedVerifyToken.mockReturnValue(adminPayload);
+
+    const request = authRequest();
+    const response = await GET(request);
+
+    expect(response.status).toBe(403);
+  });
+
   it("should return all badges with earned status", async () => {
     mockedVerifyToken.mockReturnValue(studentPayload);
     mockedBadgeFindMany.mockResolvedValue(sampleBadges as never);

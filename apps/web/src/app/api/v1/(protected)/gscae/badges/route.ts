@@ -3,6 +3,10 @@ import { withAuth } from "@/lib/auth/middleware";
 import { prisma } from "@/lib/prisma";
 
 export const GET = withAuth(async (_request, decodedTokenPayload) => {
+  if (decodedTokenPayload.role !== "STUDENT") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const [allBadges, earned] = await Promise.all([
     prisma.badge.findMany({
       orderBy: [{ category: "asc" }, { id: "asc" }],

@@ -75,6 +75,10 @@ export default function BadgesPage() {
     }
 
     const user = JSON.parse(storedUser);
+    if (user.role !== "STUDENT") {
+      router.replace("/login");
+      return;
+    }
     setUserName(user.name ?? "Aluno");
 
     fetch("/api/v1/gscae/badges")
