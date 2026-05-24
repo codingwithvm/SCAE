@@ -133,6 +133,10 @@ const existingStudent = {
   createdAt: new Date("2026-01-01T00:00:00Z"),
   updatedAt: new Date("2026-01-01T00:00:00Z"),
   deletedAt: null,
+  scaeProfile: null,
+  onboardingCompleted: false,
+  mceUnlocked: false,
+  onboardingCompletedAt: null,
 };
 
 const existingTeacher = {
@@ -148,6 +152,10 @@ const existingTeacher = {
   createdAt: new Date("2026-01-02T00:00:00Z"),
   updatedAt: new Date("2026-01-02T00:00:00Z"),
   deletedAt: null,
+  scaeProfile: null,
+  onboardingCompleted: false,
+  mceUnlocked: false,
+  onboardingCompletedAt: null,
 };
 
 const routeContext = {

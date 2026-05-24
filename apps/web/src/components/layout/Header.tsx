@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { NotificationsBell } from "@/components/gscae/NotificationsBell";
 
 interface NavLink {
   label: string;
@@ -70,6 +71,8 @@ export function Header(props: HeaderProps) {
         </Link>
 
         <div className="flex items-center gap-4">
+          <NotificationsBell />
+
           <div
             className="flex h-9 w-9 items-center justify-center rounded-full bg-primary"
             aria-hidden="true"

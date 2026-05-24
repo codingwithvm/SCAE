@@ -13,6 +13,7 @@ const scripts = [
   "seed-development-teacher-classes.mjs",
   "seed-development-releases.mjs",
   "seed-development-assessments.mjs",
+  "seed-development-notifications.mjs",
 ];
 
 console.log("=== SCAE Development Seed ===\n");
