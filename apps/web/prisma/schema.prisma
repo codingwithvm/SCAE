@@ -44,6 +44,9 @@ model User {
   reportsSent     ReportDelivery[]    @relation("SentByUser")
   notifications   Notification[]
   studentBadges   StudentBadge[]
+  activitySessions ActivitySession[]
+  studentProgress  StudentProgress[]
+  activitiesCreated Activity[]      @relation("ActivitiesCreated")
 
   @@index([email])
   @@index([registrationNumber])
@@ -293,4 +296,106 @@ model StudentBadge {
   @@unique([userId, badgeId, context])
   @@index([userId])
   @@map("scae_student_badges")
+}
+
+model Activity {
+  id              String   @id @default(uuid())
+  habilidadeCode  String   @db.VarChar(20)
+  habilidadeDesc  String
+  discipline      String   @db.VarChar(5)
+  grade           String   @db.VarChar(5)
+  title           String   @db.VarChar(200)
+  htmlContent     String
+  activityVersion String   @default("v4") @db.VarChar(10)
+  isActive        Boolean  @default(true)
+  level1Content   String
+  createdById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy User?             @relation("ActivitiesCreated", fields: [createdById], references: [id])
+  sessions  ActivitySession[]
+  progress  StudentProgress[]
+
+  @@index([habilidadeCode])
+  @@index([discipline])
+  @@index([grade])
+  @@index([isActive])
+  @@map("scae_activities")
+}
+
+model ActivitySession {
+  id              String    @id @default(uuid())
+  userId          String
+  activityId      String
+  status          String    @default("started") @db.VarChar(20)
+  scaeLevel       String?   @db.VarChar(20)
+  spaeceLevel     String?   @db.VarChar(30)
+  level1Score     Float?
+  level2Score     Float?
+  level3Score     Float?
+  totalScore      Float?
+  confidenceIndex Float?
+  timeSpentSecs   Int?
+  reflectionData  String?
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user      User               @relation(fields: [userId], references: [id])
+  activity  Activity           @relation(fields: [activityId], references: [id])
+  responses ActivityResponse[]
+
+  @@index([userId])
+  @@index([activityId])
+  @@index([status])
+  @@map("scae_activity_sessions")
+}
+
+model ActivityResponse {
+  id               String   @id @default(uuid())
+  sessionId        String
+  questionId       String   @db.VarChar(50)
+  questionText     String
+  level            Int
+  selectedOption   String   @db.VarChar(5)
+  correctOption    String   @db.VarChar(5)
+  isCorrect        Boolean
+  points           Int
+  spaeceDescriptor String?  @db.VarChar(20)
+  responseTimeMs   Int?
+  createdAt        DateTime @default(now())
+
+  session ActivitySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("scae_activity_responses")
+}
+
+model StudentProgress {
+  id               String   @id @default(uuid())
+  userId           String
+  activityId       String
+  habilidadeCode   String   @db.VarChar(20)
+  discipline       String   @db.VarChar(5)
+  grade            Int
+  attemptsCount    Int      @default(0)
+  completionsCount Int      @default(0)
+  bestScaeLevel    String?  @db.VarChar(20)
+  currentScaeLevel String?  @db.VarChar(20)
+  bestScore        Float?
+  averageScore     Float?
+  needsAttention   Boolean  @default(false)
+  evolutionData    String?
+  firstAttemptAt   DateTime @default(now())
+  lastAttemptAt    DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  activity Activity @relation(fields: [activityId], references: [id])
+
+  @@unique([userId, habilidadeCode])
+  @@index([userId])
+  @@index([habilidadeCode])
+  @@index([needsAttention])
+  @@map("scae_student_progress")
 }

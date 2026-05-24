@@ -7,24 +7,9 @@ const dockerComposeFilePath = "apps/web/infra/docker-compose.development.yml";
 const dockerComposeEnvFilePath = "apps/web/.env.development";
 const waitForPostgresScriptPath =
   "apps/web/infra/scripts/wait-for-postgres.mjs";
-const seedDevelopmentUsersScriptPath =
-  "apps/web/infra/scripts/seed-development-users.mjs";
-const seedDevelopmentMunicipalitiesScriptPath =
-  "apps/web/infra/scripts/seed-development-municipalities.mjs";
-const seedDevelopmentSchoolsScriptPath =
-  "apps/web/infra/scripts/seed-development-schools.mjs";
-const seedDevelopmentClassesScriptPath =
-  "apps/web/infra/scripts/seed-development-classes.mjs";
-const seedDevelopmentTeacherClassesScriptPath =
-  "apps/web/infra/scripts/seed-development-teacher-classes.mjs";
-const seedDevelopmentStudentClassesScriptPath =
-  "apps/web/infra/scripts/seed-development-student-classes.mjs";
-const seedDevelopmentReleasesScriptPath =
-  "apps/web/infra/scripts/seed-development-releases.mjs";
-const seedDevelopmentAssessmentsScriptPath =
-  "apps/web/infra/scripts/seed-development-assessments.mjs";
+const seedAllScriptPath = "apps/web/infra/scripts/seed-all.mjs";
 
-const TOTAL_STEPS = 11;
+const TOTAL_STEPS = 6;
 const LOADING_DOT_INTERVAL_MS = 500;
 let isShuttingDown = false;
 
@@ -121,10 +106,25 @@ function runPrismaMigrations() {
   });
 }
 
-function seedDevelopmentUsers() {
+function generatePrismaClient() {
   return new Promise((resolvePromise, rejectPromise) => {
-    const finishSeedStep = startStepLoading(4, "Seeding development users");
-    const seedProcess = spawnProcess("node", [seedDevelopmentUsersScriptPath], {
+    const finishStep = startStepLoading(4, "Generating Prisma client");
+    const generateProcess = spawnProcess("npx", ["prisma", "generate"], {
+      cwd: "apps/web",
+      stdio: "ignore",
+    });
+    generateProcess.on("close", (exitCode) => {
+      if (exitCode !== 0) return rejectPromise(exitCode);
+      finishStep();
+      resolvePromise();
+    });
+  });
+}
+
+function seedAll() {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const finishSeedStep = startStepLoading(5, "Seeding development data");
+    const seedProcess = spawnProcess("node", [seedAllScriptPath], {
       stdio: "pipe",
     });
 
@@ -137,252 +137,15 @@ function seedDevelopmentUsers() {
       if (exitCode !== 0) return rejectPromise(exitCode);
       finishSeedStep();
 
-      const credentialsBlock = seedOutput
+      const summaryLines = seedOutput
         .split("\n")
-        .filter((outputLine) => outputLine.startsWith(">"))
+        .filter(
+          (line) => line.startsWith(">") || line.startsWith("Credentials"),
+        )
         .join("\n");
 
-      if (credentialsBlock) {
-        console.log(`\n${credentialsBlock}\n`);
-      }
-
-      resolvePromise();
-    });
-  });
-}
-
-function seedDevelopmentMunicipalities() {
-  return new Promise((resolvePromise, rejectPromise) => {
-    const finishSeedStep = startStepLoading(
-      5,
-      "Seeding development municipalities",
-    );
-    const seedProcess = spawnProcess(
-      "node",
-      [seedDevelopmentMunicipalitiesScriptPath],
-      { stdio: "pipe" },
-    );
-
-    let seedOutput = "";
-    seedProcess.stdout.on("data", (chunk) => {
-      seedOutput += chunk.toString();
-    });
-
-    seedProcess.on("close", (exitCode) => {
-      if (exitCode !== 0) return rejectPromise(exitCode);
-      finishSeedStep();
-
-      const summaryLine = seedOutput
-        .split("\n")
-        .filter((outputLine) => outputLine.startsWith(">"))
-        .join("\n");
-
-      if (summaryLine) {
-        console.log(`\n${summaryLine}\n`);
-      }
-
-      resolvePromise();
-    });
-  });
-}
-
-function seedDevelopmentSchools() {
-  return new Promise((resolvePromise, rejectPromise) => {
-    const finishSeedStep = startStepLoading(6, "Seeding development schools");
-    const seedProcess = spawnProcess(
-      "node",
-      [seedDevelopmentSchoolsScriptPath],
-      { stdio: "pipe" },
-    );
-
-    let seedOutput = "";
-    seedProcess.stdout.on("data", (chunk) => {
-      seedOutput += chunk.toString();
-    });
-
-    seedProcess.on("close", (exitCode) => {
-      if (exitCode !== 0) return rejectPromise(exitCode);
-      finishSeedStep();
-
-      const summaryBlock = seedOutput
-        .split("\n")
-        .filter((outputLine) => outputLine.startsWith(">"))
-        .join("\n");
-
-      if (summaryBlock) {
-        console.log(`\n${summaryBlock}\n`);
-      }
-
-      resolvePromise();
-    });
-  });
-}
-
-function seedDevelopmentClasses() {
-  return new Promise((resolvePromise, rejectPromise) => {
-    const finishSeedStep = startStepLoading(7, "Seeding development classes");
-    const seedProcess = spawnProcess(
-      "node",
-      [seedDevelopmentClassesScriptPath],
-      { stdio: "pipe" },
-    );
-
-    let seedOutput = "";
-    seedProcess.stdout.on("data", (chunk) => {
-      seedOutput += chunk.toString();
-    });
-
-    seedProcess.on("close", (exitCode) => {
-      if (exitCode !== 0) return rejectPromise(exitCode);
-      finishSeedStep();
-
-      const summaryBlock = seedOutput
-        .split("\n")
-        .filter((outputLine) => outputLine.startsWith(">"))
-        .join("\n");
-
-      if (summaryBlock) {
-        console.log(`\n${summaryBlock}\n`);
-      }
-
-      resolvePromise();
-    });
-  });
-}
-
-function seedDevelopmentTeacherClasses() {
-  return new Promise((resolvePromise, rejectPromise) => {
-    const finishSeedStep = startStepLoading(
-      8,
-      "Seeding development teacher-class links",
-    );
-    const seedProcess = spawnProcess(
-      "node",
-      [seedDevelopmentTeacherClassesScriptPath],
-      { stdio: "pipe" },
-    );
-
-    let seedOutput = "";
-    seedProcess.stdout.on("data", (chunk) => {
-      seedOutput += chunk.toString();
-    });
-
-    seedProcess.on("close", (exitCode) => {
-      if (exitCode !== 0) return rejectPromise(exitCode);
-      finishSeedStep();
-
-      const summaryBlock = seedOutput
-        .split("\n")
-        .filter((outputLine) => outputLine.startsWith(">"))
-        .join("\n");
-
-      if (summaryBlock) {
-        console.log(`\n${summaryBlock}\n`);
-      }
-
-      resolvePromise();
-    });
-  });
-}
-
-function seedDevelopmentStudentClasses() {
-  return new Promise((resolvePromise, rejectPromise) => {
-    const finishSeedStep = startStepLoading(
-      9,
-      "Seeding development student-class links",
-    );
-    const seedProcess = spawnProcess(
-      "node",
-      [seedDevelopmentStudentClassesScriptPath],
-      { stdio: "pipe" },
-    );
-
-    let seedOutput = "";
-    seedProcess.stdout.on("data", (chunk) => {
-      seedOutput += chunk.toString();
-    });
-
-    seedProcess.on("close", (exitCode) => {
-      if (exitCode !== 0) return rejectPromise(exitCode);
-      finishSeedStep();
-
-      const summaryBlock = seedOutput
-        .split("\n")
-        .filter((outputLine) => outputLine.startsWith(">"))
-        .join("\n");
-
-      if (summaryBlock) {
-        console.log(`\n${summaryBlock}\n`);
-      }
-
-      resolvePromise();
-    });
-  });
-}
-
-function seedDevelopmentReleases() {
-  return new Promise((resolvePromise, rejectPromise) => {
-    const finishSeedStep = startStepLoading(
-      10,
-      "Seeding development assessment releases",
-    );
-    const seedProcess = spawnProcess(
-      "node",
-      [seedDevelopmentReleasesScriptPath],
-      { stdio: "pipe" },
-    );
-
-    let seedOutput = "";
-    seedProcess.stdout.on("data", (chunk) => {
-      seedOutput += chunk.toString();
-    });
-
-    seedProcess.on("close", (exitCode) => {
-      if (exitCode !== 0) return rejectPromise(exitCode);
-      finishSeedStep();
-
-      const summaryBlock = seedOutput
-        .split("\n")
-        .filter((outputLine) => outputLine.startsWith(">"))
-        .join("\n");
-
-      if (summaryBlock) {
-        console.log(`\n${summaryBlock}\n`);
-      }
-
-      resolvePromise();
-    });
-  });
-}
-
-function seedDevelopmentAssessments() {
-  return new Promise((resolvePromise, rejectPromise) => {
-    const finishSeedStep = startStepLoading(
-      11,
-      "Seeding development assessments",
-    );
-    const seedProcess = spawnProcess(
-      "node",
-      [seedDevelopmentAssessmentsScriptPath],
-      { stdio: "pipe" },
-    );
-
-    let seedOutput = "";
-    seedProcess.stdout.on("data", (chunk) => {
-      seedOutput += chunk.toString();
-    });
-
-    seedProcess.on("close", (exitCode) => {
-      if (exitCode !== 0) return rejectPromise(exitCode);
-      finishSeedStep();
-
-      const summaryBlock = seedOutput
-        .split("\n")
-        .filter((outputLine) => outputLine.startsWith(">"))
-        .join("\n");
-
-      if (summaryBlock) {
-        console.log(`\n${summaryBlock}\n`);
+      if (summaryLines) {
+        console.log(`\n${summaryLines}\n`);
       }
 
       resolvePromise();
@@ -394,16 +157,10 @@ async function startDevEnvironment() {
   await startDockerServices();
   await waitForPostgres();
   await runPrismaMigrations();
-  await seedDevelopmentUsers();
-  await seedDevelopmentMunicipalities();
-  await seedDevelopmentSchools();
-  await seedDevelopmentClasses();
-  await seedDevelopmentTeacherClasses();
-  await seedDevelopmentStudentClasses();
-  await seedDevelopmentReleases();
-  await seedDevelopmentAssessments();
+  await generatePrismaClient();
+  await seedAll();
 
-  console.log("> Starting Next.js...\n");
+  console.log(`[6/${TOTAL_STEPS}] Starting Next.js ✓\n`);
 
   const nextDevProcess = spawn("npm run dev:web", [], {
     stdio: "inherit",

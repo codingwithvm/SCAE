@@ -3,7 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Sparkles, BookOpen, ArrowRight, Loader2, Trophy } from "lucide-react";
+import {
+  Sparkles,
+  BookOpen,
+  ArrowRight,
+  Loader2,
+  Trophy,
+  Zap,
+} from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 import { type ProfileName } from "@/lib/quiz/profile";
@@ -261,7 +268,29 @@ export default function DashboardPage() {
               </Button>
             </div>
           </div>
-          <div className="flex-1" />
+          <div className="flex flex-1 flex-col rounded-2xl border border-border-light bg-background shadow-[0_2px_8px_rgba(30,79,174,0.08)]">
+            <div className="flex flex-col gap-1 px-6 py-5">
+              <h2 className="text-lg font-semibold text-text-primary font-(family-name:--font-poppins)]">
+                Atividades G-SCAE
+              </h2>
+              <p className="text-sm text-text-secondary font-(family-name:--font-inter)]">
+                Pratique habilidades e evolua seu nível SCAE.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-5 px-6 pb-5 pt-0">
+              <Zap size={48} className="text-accent" aria-hidden="true" />
+              <Button variant="secondary" size="md" className="w-full" asChild>
+                <Link
+                  href="/gscae/activities"
+                  className="flex items-center justify-center gap-2"
+                >
+                  Ver atividades
+                  <ArrowRight size={18} aria-hidden="true" />
+                </Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </main>
     </div>
