@@ -40,6 +40,10 @@ const existingActiveTeacher = {
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,
+  scaeProfile: null,
+  onboardingCompleted: false,
+  mceUnlocked: false,
+  onboardingCompletedAt: null,
 };
 
 const existingActiveSchoolManager = {

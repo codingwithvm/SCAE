@@ -34,6 +34,10 @@ const existingActiveStudent = {
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,
+  scaeProfile: null,
+  onboardingCompleted: false,
+  mceUnlocked: false,
+  onboardingCompletedAt: null,
 };
 
 describe("POST /api/v1/auth/login/student", () => {
