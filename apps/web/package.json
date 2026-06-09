@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "db:seed": "node infra/scripts/seed-all.mjs"
+    "db:seed": "node infra/scripts/seed-all.mjs",
+    "db:seed:teachers": "node infra/scripts/seed-development-teacher-assessments.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",

@@ -13,6 +13,7 @@ const scripts = [
   "seed-development-teacher-classes.mjs",
   "seed-development-releases.mjs",
   "seed-development-assessments.mjs",
+  "seed-development-teacher-assessments.mjs",
   "seed-development-notifications.mjs",
   "seed-development-badges.mjs",
   "seed-development-activities.mjs",
