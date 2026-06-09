@@ -16,3 +16,12 @@ apps/web/src/generated/prisma/
 
 # TypeScript
 *.tsbuildinfo
+
+# Vercel
+.vercel
+apps/web/.vercel
+
+# Env files
+.env
+.env.*
+!.env.example
