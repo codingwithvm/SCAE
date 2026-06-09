@@ -23,12 +23,31 @@ export async function POST(loginRequest: Request) {
       );
     }
 
+    // Compara apenas a parte DATE (sem hora/fuso) para evitar problemas de timezone
+    // entre o servidor de banco e o servidor de aplicação
     const student = await prisma.user.findFirst({
       where: {
         registrationNumber,
-        birthDate: parsedBirthDate,
         role: "STUDENT",
         deletedAt: null,
+        birthDate: {
+          gte: new Date(
+            Date.UTC(
+              parsedBirthDate.getUTCFullYear(),
+              parsedBirthDate.getUTCMonth(),
+              parsedBirthDate.getUTCDate(),
+              0, 0, 0, 0,
+            ),
+          ),
+          lt: new Date(
+            Date.UTC(
+              parsedBirthDate.getUTCFullYear(),
+              parsedBirthDate.getUTCMonth(),
+              parsedBirthDate.getUTCDate() + 1,
+              0, 0, 0, 0,
+            ),
+          ),
+        },
       },
     });
 
