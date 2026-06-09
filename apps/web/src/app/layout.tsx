@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Poppins, Inter } from "next/font/google";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
+
+export const metadata: Metadata = {
+  icons: {
+    icon: "/favicon.png",
+  },
+};
 
 const poppins = Poppins({
   subsets: ["latin"],
